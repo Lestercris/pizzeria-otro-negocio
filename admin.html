@@ -413,6 +413,7 @@
       const descripcion = document.getElementById('prod-desc').value.trim(); 
       const ingredientes = document.getElementById('prod-ingredientes').value.trim(); 
       const imagen_url = document.getElementById('prod-imagen').value.trim(); 
+  
       
       // 🔥 LA MAGIA ESTÁ AQUÍ: Leemos el checkbox de forma directa
       const checkboxElement = document.getElementById('prod-disponible');
@@ -481,7 +482,7 @@
       try { 
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const fileName = `prod_${Date.now()}.${ext}`;
-        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, { 
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, { 
           method: 'POST', 
           headers: { 
             'apikey': SUPABASE_ANON_KEY, 
@@ -492,7 +493,7 @@
           body: file 
         }); 
         if (!res.ok) throw new Error('Error al subir. Revisa las políticas de Storage.'); 
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`; 
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/imagenes/${fileName}`;
         document.getElementById('prod-imagen').value = publicUrl; 
         document.getElementById('preview-prod').src = publicUrl; 
         document.getElementById('preview-prod').style.display = 'block'; 
@@ -555,7 +556,7 @@
       try {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const fileName = `slide_${Date.now()}.${ext}`;
-        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/slides/${fileName}`, {
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, {
           method: 'POST', 
           headers: { 
             'apikey': SUPABASE_ANON_KEY, 
@@ -566,7 +567,7 @@
           body: file
         });
         if (!res.ok) throw new Error('Error al subir');
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/slides/${fileName}`;
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/imagenes/${fileName}`;
         document.getElementById('slide-imagen').value = publicUrl;
         document.getElementById('preview-slide').src = publicUrl; document.getElementById('preview-slide').style.display = 'block';
         mostrarAlerta('Imagen subida.');
