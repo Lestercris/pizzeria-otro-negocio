@@ -713,8 +713,6 @@
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
-
-    // TICKET CON QR
     async function imprimirTicket(orderId) {
       const pedido = pedidosGlobal.find(p => p.order_id === orderId); 
       if (!pedido) return;
@@ -753,36 +751,75 @@
           ${config.ticket_footer ? `<div style="text-align: center; font-size: 10px; margin-top: 15px;">${esc(config.ticket_footer)}</div>` : ''}
           
           <div style="text-align: center; margin-top: 15px;">
-            <div id="qrcode-ticket" style="display: flex; justify-content: center;"></div>
+            <div id="qrcode-ticket-iframe" style="display: flex; justify-content: center;"></div>
           </div>
         </div>`;
 
-      const cont = document.getElementById('ticket-impresion');
-      cont.innerHTML = ticketHTML; 
-      cont.style.display = 'block';
-      
-      if (window.QRCode) { 
-        try { 
-          new QRCode(document.getElementById("qrcode-ticket"), {
+      // 🔥 CREAMOS UN IFRAME OCULTO SOLO PARA EL TICKET
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '0px';
+      iframe.style.height = '0px';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(`
+        <html>
+          <head>
+            <title>Ticket ${orderId}</title>
+            <style>
+              body { margin: 0; padding: 0; }
+              @page { size: auto; margin: 0mm; }
+            </style>
+          </head>
+          <body>
+            ${ticketHTML}
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      // Generar el QR dentro del iframe
+      if (iframe.contentWindow.QRCode) {
+        try {
+          new iframe.contentWindow.QRCode(doc.getElementById("qrcode-ticket-iframe"), {
             text: pedido.order_id,
             width: 80,
             height: 80,
             colorDark : "#000000",
             colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
+            correctLevel : iframe.contentWindow.QRCode.CorrectLevel.H
           });
-        } catch (e) { console.error("Error al generar QR:", e); } 
+        } catch (e) { console.error(e); }
+      } else {
+        // Si QRCode no está en el iframe, lo cargamos dinámicamente
+        const script = doc.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+        script.onload = () => {
+          try {
+            new iframe.contentWindow.QRCode(doc.getElementById("qrcode-ticket-iframe"), {
+              text: pedido.order_id,
+              width: 80,
+              height: 80,
+              colorDark : "#000000",
+              colorLight : "#ffffff",
+              correctLevel : iframe.contentWindow.QRCode.CorrectLevel.H
+            });
+          } catch (e) {}
+        };
+        doc.head.appendChild(script);
       }
-      
-      setTimeout(() => { 
-        window.print(); 
-        setTimeout(() => { 
-          cont.style.display = 'none'; 
-          cont.innerHTML = ''; 
-        }, 500); 
-      }, 300);
-    }
 
+      // Esperamos un momento y lanzamos la impresión
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+      }, 500);
+    }
+   
     // CONFIGURACIÓN
        async function cargarConfiguracion() {
       try {
