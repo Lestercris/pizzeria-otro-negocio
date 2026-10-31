@@ -47,10 +47,21 @@
     .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 10px; }
     .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
-    @media print {
+     @media print {
       body * { visibility: hidden; }
       #ticket-impresion, #ticket-impresion * { visibility: visible; }
-      #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; display: block !important; }
+      #ticket-impresion { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100% !important; /* 🔥 Cambiado para que ocupe todo el ancho */
+        max-width: 80mm; 
+        padding: 10px; 
+        font-family: 'Courier New', Courier, monospace; 
+        color: black; 
+        display: block !important; 
+        font-size: 12px;
+      }
     }
 
     /* 🔥 ESTILOS RESPONSIVE PARA MÓVIL */
