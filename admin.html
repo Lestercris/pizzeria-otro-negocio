@@ -70,52 +70,7 @@
         margin: 0mm;
       }
     }
-    /* 🔥 ESTILOS RESPONSIVE PARA MÓVIL */
-    .menu-toggle-btn {
-      display: none; /* Oculto en ordenador */
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 10000;
-      background: #2c3e50;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    @media (max-width: 850px) {
-      /* Mostrar botón solo en móviles */
-      .menu-toggle-btn {
-        display: block;
-      }
-      
-      /* Ocultar el sidebar fuera de la pantalla */
-      .sidebar {
-        position: fixed;
-        left: -300px; 
-        top: 0;
-        height: 100vh;
-        z-index: 9999;
-        transition: left 0.3s ease;
-        box-shadow: 4px 0 15px rgba(0,0,0,0.5);
-      }
-      
-      /* Clase que se activa al pulsar el botón */
-      .sidebar.open {
-        left: 0;
-      }
-
-      /* Dar espacio al contenido para que no lo tape el botón */
-      .main-content {
-        padding: 15px;
-        padding-top: 70px; 
-      }
-    }
-  </style>
+      </style>
    <link rel="stylesheet" href="admin-mobile.css">
 </head>
 <body>
