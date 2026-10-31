@@ -205,16 +205,31 @@
       <input type="hidden" id="prod-id-original">
       <label>ID del Producto (Automático)</label><input type="text" id="prod-id" readonly style="background: #f0f0f0;">
       <label>Nombre</label><input type="text" id="prod-nombre" required>
+      
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         <div><label>Precio (€)</label><input type="number" id="prod-precio" step="0.01" required></div>
         <div><label>Categoría</label><select id="prod-categoria"><option value="Pizzas">Pizzas</option><option value="Entrantes">Entrantes</option><option value="Postres">Postres</option><option value="Bebidas">Bebidas</option><option value="Otros">Otros</option></select></div>
       </div>
+      
       <label>Descripción</label><textarea id="prod-desc" rows="2"></textarea>
       <label>Ingredientes</label><textarea id="prod-ingredientes" rows="2"></textarea>
-      <label>Imagen</label><img id="preview-prod" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none;">
-      <input type="file" id="file-prod" accept="image/*" onchange="subirImagenProducto(this)">
+      
+      <label>Imagen</label>
+      <img id="preview-prod" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none;">
+      
+      <!-- 🔥 TEXTO DE ESTADO AÑADIDO -->
+      <p id="status-imagen" style="font-size: 0.8rem; color: #27ae60; margin-bottom: 5px;">Sin imagen seleccionada</p>
+      
+      <!-- 🔥 INPUT CORREGIDO CON EL CIERRE '">' -->
+      <input type="file" id="file-prod" accept="image/*" onchange="subirImagenProducto(this)" onclick="document.getElementById('prod-imagen').value = '';">
+      
       <input type="hidden" id="prod-imagen">
-      <label>Disponible en la Web</label><div style="margin-bottom: 20px;"><input type="checkbox" id="prod-disponible" checked style="width: 20px; height: 20px;"></div>
+      
+      <label>Disponible en la Web</label>
+      <div style="margin-bottom: 20px;">
+        <input type="checkbox" id="prod-disponible" checked style="width: 20px; height: 20px;">
+      </div>
+      
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-success" onclick="guardarProducto()">Guardar</button>
         <button class="btn" style="background: #95a5a6;" onclick="document.getElementById('modal-producto').style.display = 'none'">Cancelar</button>
@@ -378,8 +393,27 @@
       if (!productosGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay productos.</p>'; return; }
       cont.innerHTML = productosGlobal.map(p => `<div class="card"><img src="${p.imagen_url || ''}"><div class="card-body"><h3>${esc(p.nombre)}</h3><div class="price">${moneda(precioNum(p.precio))}</div><div class="card-actions"><button class="btn-edit" onclick="editarProducto('${p.id}')" style="background:#3498db;">✏️ Editar</button><button class="btn-delete" onclick="eliminarProducto('${p.id}')" style="background:#e74c3c;">🗑️ Borrar</button></div></div></div>`).join('');
     }
-    function abrirModalNuevo() { document.getElementById('modal-title').textContent = 'Nuevo Producto'; document.getElementById('prod-id-original').value = ''; document.getElementById('prod-id').value = 'Automático'; document.getElementById('prod-nombre').value = ''; document.getElementById('prod-precio').value = ''; document.getElementById('prod-categoria').value = 'Pizzas'; document.getElementById('prod-desc').value = ''; document.getElementById('prod-ingredientes').value = ''; document.getElementById('prod-imagen').value = ''; document.getElementById('prod-disponible').checked = true; document.getElementById('preview-prod').style.display = 'none'; document.getElementById('modal-producto').style.display = 'flex'; }
-  function editarProducto(id) {
+    function abrirModalNuevo() { 
+      document.getElementById('modal-title').textContent = 'Nuevo Producto'; 
+      document.getElementById('prod-id-original').value = ''; 
+      document.getElementById('prod-id').value = 'Automático'; 
+      document.getElementById('prod-nombre').value = ''; 
+      document.getElementById('prod-precio').value = ''; 
+      document.getElementById('prod-categoria').value = 'Pizzas'; 
+      document.getElementById('prod-desc').value = ''; 
+      document.getElementById('prod-ingredientes').value = ''; 
+      document.getElementById('prod-imagen').value = ''; 
+      document.getElementById('prod-disponible').checked = true; 
+      document.getElementById('preview-prod').style.display = 'none'; 
+      
+      // 🔥 ARREGLO: Resetear el estado de la imagen
+      document.getElementById('status-imagen').textContent = 'Sin imagen seleccionada';
+      document.getElementById('status-imagen').style.color = '#888';
+      
+      document.getElementById('modal-producto').style.display = 'flex'; 
+    }
+
+    function editarProducto(id) {
       const p = productosGlobal.find(x => String(x.id) === String(id)); 
       if (!p) return;
       
@@ -393,19 +427,27 @@
       document.getElementById('prod-ingredientes').value = p.ingredientes || ''; 
       document.getElementById('prod-imagen').value = p.imagen_url || ''; 
       
-      // 🔥 AQUÍ ESTÁ EL ARREGLO: Evaluación estricta del booleano
+      // 🔥 Evaluación estricta del booleano
       document.getElementById('prod-disponible').checked = (p.disponible === true || p.disponible === 'true'); 
       
       if (p.imagen_url) { 
         document.getElementById('preview-prod').src = p.imagen_url; 
         document.getElementById('preview-prod').style.display = 'block'; 
+        // 🔥 ARREGLO: Mostrar que sí hay imagen
+        document.getElementById('status-imagen').textContent = 'Imagen actual cargada';
+        document.getElementById('status-imagen').style.color = '#27ae60';
       } else { 
         document.getElementById('preview-prod').style.display = 'none'; 
+        // 🔥 ARREGLO: Mostrar que no hay imagen
+        document.getElementById('status-imagen').textContent = 'Sin imagen seleccionada';
+        document.getElementById('status-imagen').style.color = '#888';
       }
       
       document.getElementById('modal-producto').style.display = 'flex';
     }
-        async function guardarProducto() {
+
+    
+     async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value; 
       const nombre = document.getElementById('prod-nombre').value.trim(); 
       const precio = precioNum(document.getElementById('prod-precio').value); 
