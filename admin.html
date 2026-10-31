@@ -409,11 +409,13 @@
       // 🔥 ARREGLO: Resetear el estado de la imagen
       document.getElementById('status-imagen').textContent = 'Sin imagen seleccionada';
       document.getElementById('status-imagen').style.color = '#888';
-      
+
+      // 🔥 ESTA ES LA LÍNEA MÁGICA: Limpia el input de archivo
+      document.getElementById('file-prod').value = ''; 
       document.getElementById('modal-producto').style.display = 'flex'; 
     }
 
-    function editarProducto(id) {
+        function editarProducto(id) {
       const p = productosGlobal.find(x => String(x.id) === String(id)); 
       if (!p) return;
       
@@ -443,9 +445,11 @@
         document.getElementById('status-imagen').style.color = '#888';
       }
       
+      // 🔥 ESTA ES LA LÍNEA MÁGICA: Limpia el input del archivo
+      document.getElementById('file-prod').value = ''; 
+      
       document.getElementById('modal-producto').style.display = 'flex';
     }
-
     
      async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value; 
