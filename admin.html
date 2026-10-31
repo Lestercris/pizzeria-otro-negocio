@@ -47,33 +47,29 @@
     .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 10px; }
     .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
-         @media print {
-      /* Ocultamos TODO el body */
-      body * { visibility: hidden; }
+           @media print {
+      /* 🔥 Ocultamos absolutamente todo el cuerpo de la página */
+      body > * { display: none !important; }
       
-      /* Hacemos visible SOLO el contenedor del ticket y su contenido */
-      #ticket-impresion, #ticket-impresion * { visibility: visible; }
-      
-      /* Posicionamos el ticket en la esquina superior izquierda, sin márgenes */
-      #ticket-impresion { 
+      /* 🔥 Hacemos visible SOLO el contenedor del ticket */
+      body > #ticket-impresion { 
+        display: block !important; 
         position: absolute; 
         left: 0; 
         top: 0; 
-        width: 80mm; /* Ancho estándar de ticket térmico */
+        width: 80mm; 
         padding: 5px; 
         font-family: 'Courier New', Courier, monospace; 
         color: black; 
-        display: block !important;
         background: white;
       }
 
-      /* Forzamos que el ticket no se corte y ocupe el mínimo de páginas */
+      /* Configuramos la página para que no tenga márgenes */
       @page {
         size: auto;
         margin: 0mm;
       }
     }
-
     /* 🔥 ESTILOS RESPONSIVE PARA MÓVIL */
     .menu-toggle-btn {
       display: none; /* Oculto en ordenador */
