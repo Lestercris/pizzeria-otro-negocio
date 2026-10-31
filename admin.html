@@ -51,6 +51,51 @@
       body * { visibility: hidden; }
       #ticket-impresion, #ticket-impresion * { visibility: visible; }
       #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; display: block !important; }
+     /* 🔥 ESTILOS RESPONSIVE PARA MÓVIL */
+    .menu-toggle-btn {
+      display: none; /* Oculto en ordenador */
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 10000;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 850px) {
+      /* Mostrar botón solo en móviles */
+      .menu-toggle-btn {
+        display: block;
+      }
+      
+      /* Ocultar el sidebar fuera de la pantalla */
+      .sidebar {
+        position: fixed;
+        left: -300px; 
+        top: 0;
+        height: 100vh;
+        z-index: 9999;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+      }
+      
+      /* Clase que se activa al pulsar el botón */
+      .sidebar.open {
+        left: 0;
+      }
+
+      /* Dar espacio al contenido para que no lo tape el botón */
+      .main-content {
+        padding: 15px;
+        padding-top: 70px; 
+      }
+    }
     }
   </style>
 </head>
@@ -67,7 +112,8 @@
       <div id="login-msg" style="margin-top: 15px; display: none; background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px;"></div>
     </div>
   </div>
-
+  <!-- 🔥 BOTÓN DE MENÚ PARA MÓVILES -->
+  <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">☰</button>
   <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
     <div class="user-profile">
@@ -97,6 +143,7 @@
 
     <div id="seccion-pedidos" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        
         <h1>Gestión de Pedidos</h1>
         <button class="btn" style="width: auto; background: #3498db;" onclick="cargarPedidos()">🔄 Actualizar</button>
       </div>
@@ -1086,6 +1133,11 @@
         });
       }
     });
+        // 🔥 FUNCIÓN PARA ABRIR Y CERRAR EL MENÚ EN MÓVILES
+    function toggleMenu() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
   </script>
 </body>
 </html>
