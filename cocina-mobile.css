@@ -1,0 +1,87 @@
+/* =========================================
+   ESTILOS RESPONSIVE PARA EL MONITOR DE COCINA
+   ========================================= */
+
+@media (max-width: 850px) {
+  /* 1. Header reorganizado y compacto */
+  header {
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  header h1 {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+  
+  /* El selector de cocinero ocupa todo el ancho */
+  .cocinero-select {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  /* Los datos de conexión y reloj en fila */
+  .connection-status {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .clock {
+    font-size: 1.2rem;
+  }
+
+  /* Botón de salir más grande y fácil de pulsar */
+  .btn-salir {
+    padding: 8px 15px;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  /* 2. Las tarjetas de pedidos en formato de 1 sola columna */
+  .grid-pedidos {
+    grid-template-columns: 1fr !important;
+    padding: 10px;
+    gap: 15px;
+  }
+
+  /* Hacer las tarjetas más grandes y legibles */
+  .tarjeta-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .lista-detalles li {
+    font-size: 1rem;
+    padding: 10px 0;
+  }
+
+  /* 3. Botones en la tarjeta apilados (uno encima del otro) */
+  .tarjeta-footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .btn-accion {
+    padding: 15px;
+    font-size: 1.1rem;
+    width: 100%;
+  }
+  
+  /* 4. Modales a pantalla completa para leer bien las notas */
+  .modal-content {
+    width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 10px;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+
+  .detalle-lista li {
+    font-size: 1.1rem;
+  }
+}
