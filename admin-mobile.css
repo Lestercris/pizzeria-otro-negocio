@@ -37,9 +37,17 @@
 
   .main-content {
     padding: 15px;
-    padding-top: 70px; 
+    padding-top: 80px; /* 🔥 Aumentado a 80px para que el botón ☰ no tape el título */
     width: 100%;
     overflow-x: hidden;
+  }
+
+  /* 🔥 Arreglo para el encabezado de la sección (Título y botón Actualizar) */
+  #seccion-pedidos > div:first-child,
+  #seccion-productos > div:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
   }
 
   /* --- 2. FORMULARIOS Y CONFIGURACIÓN --- */
@@ -51,6 +59,7 @@
   input, select, textarea { font-size: 16px !important; }
 
   /* --- 3. TABLAS (Pedidos y Usuarios) --- */
+  /* 🔥 Forzamos a que siempre sea formato tarjeta en pantallas menores a 850px (incluso horizontal) */
   .tabla-pedidos, .tabla-pedidos thead, .tabla-pedidos tbody, .tabla-pedidos th, .tabla-pedidos td, .tabla-pedidos tr { display: block; }
   .tabla-pedidos thead tr { position: absolute; top: -9999px; left: -9999px; }
   .tabla-pedidos tr { margin-bottom: 15px; border: 1px solid #eee; border-radius: 12px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
@@ -65,22 +74,6 @@
     font-size: 0.9rem; 
     min-height: 45px; 
     line-height: 1.4;
-  }
-  
-  /* Celda de Detalle del pedido */
-  .tabla-pedidos td:nth-of-type(3) { 
-    padding-top: 40px !important; 
-    line-height: 1.5;
-    font-size: 0.85rem;
-  }
-  
-  .tabla-pedidos td:last-child { 
-    border-bottom: none; 
-    text-align: center; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 8px; 
-    padding-top: 15px !important;
   }
   
   /* Etiqueta posicionada arriba a la izquierda */
@@ -108,6 +101,16 @@
   #tabla-usuarios-body td:nth-of-type(2):before { content: "Email"; }
   #tabla-usuarios-body td:nth-of-type(3):before { content: "Rol"; }
   
+  /* Última celda (botones) */
+  .tabla-pedidos td:last-child { 
+    border-bottom: none; 
+    text-align: center; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    padding-top: 15px !important;
+  }
+  
   /* --- 4. TARJETAS DE PRODUCTOS Y SLIDER --- */
   .grid-productos, .grid-slider {
     grid-template-columns: 1fr !important;
@@ -120,37 +123,34 @@
     max-height: 95vh !important;
     padding: 20px !important;
   }
-}
 
-/* =========================================
-   BOTÓN DE VER DETALLE EN MÓVIL (A PRUEBA DE BALAS)
-   ========================================= */
-
-/* En ordenador: el botón está oculto y el texto se ve */
-.btn-ver-detalle { display: none !important; }
-.texto-detalle { display: block !important; }
-
-@media (max-width: 850px) {
-  /* En móvil: ocultamos el texto por completo */
+  /* --- 6. BOTÓN "VER DETALLE" --- */
+  /* En móvil/tablet: Ocultamos el texto largo y mostramos el botón */
   .texto-detalle { 
     display: none !important; 
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
   }
   
-  /* En móvil: mostramos el botón */
   .btn-ver-detalle { 
     display: block !important; 
-    visibility: visible !important;
     width: 100% !important; 
     background: #3498db !important; 
     color: white !important; 
     border: none !important; 
-    padding: 10px !important; 
-    border-radius: 6px !important; 
+    padding: 12px !important; 
+    border-radius: 8px !important; 
     cursor: pointer !important; 
     font-weight: bold !important;
     text-align: center !important;
+    font-size: 0.95rem !important;
+    margin-top: 5px !important;
   }
+}
+
+/* =========================================
+   REGLAS PARA ORDENADOR (Pantallas grandes)
+   ========================================= */
+@media (min-width: 851px) {
+  /* En ordenador: el botón está oculto y el texto se ve normal */
+  .btn-ver-detalle { display: none !important; }
+  .texto-detalle { display: block !important; }
 }
