@@ -660,8 +660,7 @@
         mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
       }
     }
-
-       function renderizarPedidosAdmin() {
+    function renderizarPedidosAdmin() {
       const tbody = document.getElementById('tabla-pedidos-body');
       if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
       const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
@@ -695,7 +694,7 @@
               <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
               <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
             </select>
-            <button onclick="imprimirTicket('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
+            <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
           </td>
         </tr>`;
       }).join('');
@@ -704,12 +703,7 @@
       document.getElementById('paginacion-pedidos').style.display = 'flex';
       document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
     }
-
-    function cambiarPaginaPedidos(dir) {
-      const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
-      const nueva = paginaPedidosActual + dir;
-      if (nueva >= 1 && nueva <= totalPaginas) { paginaPedidosActual = nueva; renderizarPedidosAdmin(); }
-    }
+      
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
@@ -1153,5 +1147,6 @@
     });
     </script>
   <script src="admin-mobile.js"></script>
+    <script src="admin-ticket.js"></script>
 </body>
 </html>
