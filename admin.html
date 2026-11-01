@@ -6,6 +6,7 @@
   <title>Panel de Administración</title>
   <script src="auth.js"></script>
   <script>console.log("Versión de admin.html actualizada: " + Date.now());</script>
+  <link rel="stylesheet" href="admin-mobile.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #c0392b; --secondary: #27ae60; --bg: #f4f7f6; --text: #333; }
@@ -317,62 +318,7 @@
       </div>
     </div>
   </div>
-    <!-- 🔥 ESTILOS FORZADOS PARA EL BOTÓN DE DETALLE MÓVIL -->
-  <style>
-    /* Oculto por defecto en ordenador */
-    .btn-ver-detalle { display: none !important; }
-
-    @media (max-width: 850px) {
-      /* 1. Ocultamos el texto del detalle en móvil */
-      .tabla-pedidos .texto-detalle { display: none !important; }
-      
-      /* 2. Mostramos el botón en móvil */
-      .tabla-pedidos .btn-ver-detalle { 
-        display: block !important; 
-        width: 100% !important; 
-        background: #3498db !important; 
-        color: white !important; 
-        border: none !important; 
-        padding: 10px !important; 
-        border-radius: 6px !important; 
-        cursor: pointer !important; 
-        font-weight: bold !important;
-        text-align: center !important;
-      }
-
-      /* 3. Forzamos que la celda no tenga padding que oculte el botón */
-      .tabla-pedidos td.celda-detalle {
-        padding: 10px !important;
-        text-align: center !important;
-      }
-    }
-  </style>
-    <!-- 🔥 SOLO PARA MÓVILES MUY PEQUEÑOS -->
-  <style>
-    /* Por defecto (ordenador), el botón está oculto y el texto se ve */
-    .btn-ver-detalle { display: none; }
-    .texto-detalle { display: block; }
-
-    /* Cuando la pantalla sea pequeña (móvil) */
-    @media (max-width: 850px) {
-      /* Ocultamos el texto */
-      .tabla-pedidos .texto-detalle { 
-        display: none !important; 
-      }
-      /* Mostramos el botón */
-      .tabla-pedidos .btn-ver-detalle { 
-        display: block !important; 
-        width: 100%; 
-        background: #3498db; 
-        color: white; 
-        border: none; 
-        padding: 10px; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-weight: bold;
-      }
-    }
-  </style>
+  
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
