@@ -347,6 +347,32 @@
       }
     }
   </style>
+    <!-- 🔥 SOLO PARA MÓVILES MUY PEQUEÑOS -->
+  <style>
+    /* Por defecto (ordenador), el botón está oculto y el texto se ve */
+    .btn-ver-detalle { display: none; }
+    .texto-detalle { display: block; }
+
+    /* Cuando la pantalla sea pequeña (móvil) */
+    @media (max-width: 850px) {
+      /* Ocultamos el texto */
+      .tabla-pedidos .texto-detalle { 
+        display: none !important; 
+      }
+      /* Mostramos el botón */
+      .tabla-pedidos .btn-ver-detalle { 
+        display: block !important; 
+        width: 100%; 
+        background: #3498db; 
+        color: white; 
+        border: none; 
+        padding: 10px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-weight: bold;
+      }
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
