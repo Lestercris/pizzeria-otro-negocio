@@ -317,7 +317,36 @@
       </div>
     </div>
   </div>
-  
+    <!-- 🔥 ESTILOS FORZADOS PARA EL BOTÓN DE DETALLE MÓVIL -->
+  <style>
+    /* Oculto por defecto en ordenador */
+    .btn-ver-detalle { display: none !important; }
+
+    @media (max-width: 850px) {
+      /* 1. Ocultamos el texto del detalle en móvil */
+      .tabla-pedidos .texto-detalle { display: none !important; }
+      
+      /* 2. Mostramos el botón en móvil */
+      .tabla-pedidos .btn-ver-detalle { 
+        display: block !important; 
+        width: 100% !important; 
+        background: #3498db !important; 
+        color: white !important; 
+        border: none !important; 
+        padding: 10px !important; 
+        border-radius: 6px !important; 
+        cursor: pointer !important; 
+        font-weight: bold !important;
+        text-align: center !important;
+      }
+
+      /* 3. Forzamos que la celda no tenga padding que oculte el botón */
+      .tabla-pedidos td.celda-detalle {
+        padding: 10px !important;
+        text-align: center !important;
+      }
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
