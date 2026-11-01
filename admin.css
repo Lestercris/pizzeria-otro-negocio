@@ -1,0 +1,538 @@
+:root { 
+  --primary: #c0392b; 
+  --secondary: #27ae60; 
+  --bg: #f4f7f6; 
+  --text: #333; 
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: 'Poppins', sans-serif; 
+}
+
+body { 
+  background: var(--bg); 
+  color: var(--text); 
+  min-height: 100vh; 
+  display: flex; 
+}
+
+/* =========================================
+   SIDEBAR (MENÚ LATERAL)
+   ========================================= */
+.sidebar { 
+  width: 260px; 
+  background: #2c3e50; 
+  color: white; 
+  padding: 20px; 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.sidebar h2 { 
+  text-align: center; 
+  margin-bottom: 15px; 
+  font-size: 1.5rem; 
+  color: #f1c40f; 
+}
+
+.user-profile { 
+  background: rgba(0,0,0,0.2); 
+  padding: 10px; 
+  border-radius: 8px; 
+  margin-bottom: 20px; 
+  text-align: center; 
+  border-left: 4px solid #f1c40f; 
+}
+
+.user-profile p { 
+  font-size: 0.9rem; 
+  margin: 0; 
+}
+
+.user-profile .rol { 
+  font-size: 0.75rem; 
+  color: #bdc3c7; 
+  text-transform: uppercase; 
+  font-weight: bold; 
+}
+
+.sidebar button { 
+  background: none; 
+  border: none; 
+  color: white; 
+  padding: 12px 15px; 
+  text-align: left; 
+  font-size: 1rem; 
+  cursor: pointer; 
+  border-radius: 8px; 
+  transition: 0.3s; 
+  margin-bottom: 5px; 
+}
+
+.sidebar button:hover, 
+.sidebar button.active { 
+  background: var(--primary); 
+}
+
+.sidebar .logout { 
+  margin-top: auto; 
+  color: #e74c3c; 
+}
+
+.admin-only { display: none; }
+.hidden-panel { display: none; }
+
+/* =========================================
+   CONTENIDO PRINCIPAL
+   ========================================= */
+.main-content { 
+  flex: 1; 
+  padding: 30px; 
+  overflow-y: auto; 
+}
+
+#login-screen { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(44, 62, 80, 0.95); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 9999; 
+}
+
+.login-box { 
+  background: white; 
+  padding: 40px; 
+  border-radius: 15px; 
+  width: 100%; 
+  max-width: 400px; 
+  text-align: center; 
+}
+
+.login-box h2 { 
+  color: var(--primary); 
+  margin-bottom: 20px; 
+}
+
+/* =========================================
+   FORMULARIOS E INPUTS
+   ========================================= */
+input, select, textarea { 
+  width: 100%; 
+  padding: 12px; 
+  margin-bottom: 15px; 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  font-size: 0.95rem; 
+  outline: none; 
+}
+
+input:focus, select:focus { 
+  border-color: var(--primary); 
+}
+
+input[readonly] { 
+  background: #e9ecef; 
+  color: #6c757d; 
+  cursor: not-allowed; 
+}
+
+label { 
+  display: block; 
+  font-weight: 500; 
+  margin-bottom: 5px; 
+  font-size: 0.9rem; 
+  color: #555; 
+}
+
+button.btn { 
+  background: var(--primary); 
+  color: white; 
+  border: none; 
+  padding: 12px 20px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: 600; 
+  width: 100%; 
+  transition: 0.3s; 
+}
+
+button.btn:hover { 
+  background: #a93226; 
+}
+
+button.btn-success { 
+  background: var(--secondary); 
+}
+
+/* =========================================
+   TARJETAS (PRODUCTOS Y SLIDER)
+   ========================================= */
+.card { 
+  background: white; 
+  border-radius: 12px; 
+  overflow: hidden; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.card img { 
+  width: 100%; 
+  height: 150px; 
+  object-fit: cover; 
+  background: #eee; 
+}
+
+.card-body { 
+  padding: 15px; 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.card-body h3 { 
+  font-size: 1.1rem; 
+  margin-bottom: 5px; 
+  color: var(--primary); 
+}
+
+.card-body .price { 
+  font-size: 1.2rem; 
+  font-weight: bold; 
+  color: var(--secondary); 
+  margin-bottom: 10px; 
+}
+
+.card-actions { 
+  display: flex; 
+  gap: 10px; 
+  margin-top: auto; 
+}
+
+.card-actions button { 
+  flex: 1; 
+  padding: 8px; 
+  border: none; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-weight: 600; 
+  color: white; 
+}
+
+/* =========================================
+   MODALES
+   ========================================= */
+.modal { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.6); 
+  display: none; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 1000; 
+}
+
+.modal-content { 
+  background: white; 
+  padding: 30px; 
+  border-radius: 12px; 
+  width: 100%; 
+  max-width: 500px; 
+  max-height: 90vh; 
+  overflow-y: auto; 
+}
+
+/* =========================================
+   TABLAS (ESCRITORIO)
+   ========================================= */
+.tabla-pedidos { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 12px; 
+  overflow: hidden; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+  margin-top: 10px; 
+}
+
+.tabla-pedidos th, 
+.tabla-pedidos td { 
+  padding: 12px 15px; 
+  text-align: left; 
+  border-bottom: 1px solid #eee; 
+  font-size: 0.9rem; 
+}
+
+.tabla-pedidos th { 
+  background: #2c3e50; 
+  color: white; 
+  font-weight: 500; 
+}
+/* =========================================
+   AJUSTES ADICIONALES DE DISEÑO
+   ========================================= */
+
+/* Contenedor de la tabla para que no se desborde */
+#seccion-pedidos > div {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Estilos para los botones dentro de la tabla (Select y Ticket) */
+.tabla-pedidos select {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.tabla-pedidos button {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-radius: 5px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.tabla-pedidos button:hover {
+  background: #2980b9;
+}
+
+/* Estilos para el reproductor del ticket (Modal) */
+#ticket-preview-content {
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* Estilo de los inputs dentro de los modales para que no se vean apretados */
+.modal-content input, 
+.modal-content select, 
+.modal-content textarea {
+  background-color: #f8f9fa;
+}
+
+.modal-content input:focus, 
+.modal-content select:focus, 
+.modal-content textarea:focus {
+  background-color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+}
+
+/* Botones de acción dentro de los modales */
+.modal-content .btn {
+  margin-top: 10px;
+}
+/* =========================================
+   ETIQUETAS DE ESTADO (PEDIDOS)
+   ========================================= */
+.estado-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Colores para los estados dinámicos */
+.estado-pendiente { background: #fff3cd; color: #856404; }
+.estado-pagado { background: #d4edda; color: #155724; }
+.estado-preparacion { background: #cce5ff; color: #004085; }
+.estado-listo { background: #d1ecf1; color: #0c5460; }
+.estado-reparto { background: #e2e3e5; color: #383d41; }
+.estado-entregado { background: #27ae60; color: #ffffff; }
+.estado-cancelado { background: #f8d7da; color: #721c24; }
+
+/* =========================================
+   AJUSTES FINALES (DETALLES)
+   ========================================= */
+
+/* Hacer que las imágenes de las tarjetas tengan un leve zoom al pasar el ratón */
+.card img {
+  transition: transform 0.3s ease;
+}
+.card:hover img {
+  transform: scale(1.05);
+}
+
+/* Barra de desplazamiento personalizada (para que se vea más limpia) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8; 
+}
+/* Ajuste para que los checkbox se vean alineados */
+input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+}
+/* =========================================
+   FORMULARIOS EN GRID (CONFIGURACIÓN / USUARIOS)
+   ========================================= */
+.grid-formulario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* En pantallas un poco más pequeñas (pero no móvil), pasamos a 1 columna */
+@media (max-width: 600px) {
+  .grid-formulario {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   SECCIÓN DE CONFIGURACIÓN Y MANTENIMIENTO
+   ========================================= */
+.seccion-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 800px;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.seccion-card h1 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 10px;
+  display: inline-block;
+}
+
+/* Separadores dentro de la configuración */
+.separador {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+/* =========================================
+   MODALES (MEJORAS VISUALES)
+   ========================================= */
+/* Cabecera oscura para los modales (como la del ticket) */
+.modal-header-oscuro {
+  padding: 15px 20px;
+  background: #2c3e50;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -30px -30px 20px -30px; /* Compensa el padding del modal-content */
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.modal-header-oscuro h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: white !important;
+}
+
+.modal-header-oscuro button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* =========================================
+   IMÁGENES DE PREVISUALIZACIÓN (MODAL PRODUCTO)
+   ========================================= */
+#preview-prod, #preview-slide {
+  border: 2px dashed #ddd;
+  background: #fafafa;
+  transition: border-color 0.3s;
+}
+
+#preview-prod:hover, #preview-slide:hover {
+  border-color: var(--primary);
+}
+
+/* Indicador de carga para imágenes */
+.status-text {
+  font-size: 0.8rem;
+  color: #27ae60;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+/* =========================================
+   ANIMACIONES Y EFECTOS FINALES
+   ========================================= */
+
+/* Animación suave para cuando se abre un modal */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Efecto hover para los botones de acción de las tablas */
+.tabla-pedidos button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  transition: all 0.2s;
+}
+
+/* Estilo para los títulos principales de cada sección */
+h1 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+/* Ajuste para que el contenedor de alertas no deforme la tabla */
+#alert-box {
+  transition: opacity 0.3s ease;
+}
+
+/* Estilo para los textos de ayuda (ej: "Llave pública de Stripe") */
+.help-text {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Ocultar la barra de scroll horizontal en la tabla cuando no sea necesaria */
+.tabla-pedidos {
+  scrollbar-width: thin;
+}
+
+/* =========================================
+   FIN DEL ARCHIVO admin.css
+   ========================================= */
