@@ -283,7 +283,25 @@
       </div>
     </div>
   </div>
-
+<!-- 🔥 MODAL DE PREVISUALIZACIÓN DEL TICKET -->
+  <div class="modal" id="modal-ticket-preview" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="background: white; border-radius: 12px; width: 100%; max-width: 400px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+      
+      <div style="padding: 15px 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; font-size: 1.2rem;">Previsualización del Ticket</h2>
+        <button onclick="cerrarModalTicket()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
+      </div>
+      
+      <div id="ticket-preview-content" style="padding: 20px; overflow-y: auto; flex: 1; background: #f9f9f9;">
+        <!-- El ticket se genera aquí -->
+      </div>
+      
+      <div style="padding: 15px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white;">
+        <button class="btn" style="background: #95a5a6;" onclick="cerrarModalTicket()">Cancelar</button>
+        <button class="btn btn-success" onclick="imprimirDesdeModal()">🖨️ Imprimir Ticket</button>
+      </div>
+    </div>
+  </div>
   
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
@@ -680,25 +698,7 @@
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
-     <!-- 🔥 MODAL DE PREVISUALIZACIÓN DEL TICKET -->
-  <div class="modal" id="modal-ticket-preview" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999;">
-    <div style="background: white; border-radius: 12px; width: 100%; max-width: 400px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-      
-      <div style="padding: 15px 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0; font-size: 1.2rem;">Previsualización del Ticket</h2>
-        <button onclick="cerrarModalTicket()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
-      </div>
-      
-      <div id="ticket-preview-content" style="padding: 20px; overflow-y: auto; flex: 1; background: #f9f9f9;">
-        <!-- El ticket se genera aquí -->
-      </div>
-      
-      <div style="padding: 15px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white;">
-        <button class="btn" style="background: #95a5a6;" onclick="cerrarModalTicket()">Cancelar</button>
-        <button class="btn btn-success" onclick="imprimirDesdeModal()">🖨️ Imprimir Ticket</button>
-      </div>
-    </div>
-  </div>
+     
    
     // CONFIGURACIÓN
        async function cargarConfiguracion() {
