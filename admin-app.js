@@ -49,7 +49,10 @@ async function login() {
     });
     
     if (!response.ok) throw new Error('Credenciales incorrectas');
-    await response.json();
+    
+    // 🔥 CAPTURAMOS EL TOKEN REAL DE SUPABASE
+    const authData = await response.json(); 
+    const accessToken = authData.access_token;
     
     const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
     let nombreMostrar = email, rolReal = 'empleado';
@@ -58,12 +61,14 @@ async function login() {
       rolReal = perfiles[0].rol || 'empleado'; 
       nombreMostrar = perfiles[0].nombre || email; 
     }
-     if (email === 'isahyles123@gmail.com') { 
+    
+    if (email === 'isahyles123@gmail.com') { 
       rolReal = 'admin'; 
       nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; 
     }
 
-    AuthGuard.saveSession(email, rolReal);
+    // 🔥 GUARDAMOS LA SESIÓN CON EL TOKEN REAL
+    AuthGuard.saveSession(email, rolReal, accessToken);
 
     if (rolReal === 'cocina') { 
       window.location.href = 'cocina.html'; 
@@ -99,7 +104,6 @@ function mostrarSeccion(id, event) {
   if(id === 'resenas') cargarResenas(); if(id === 'pedidos') cargarPedidos(); if(id === 'slider') cargarSlides(); if(id === 'usuarios') cargarUsuarios(); 
   document.getElementById('sidebar').classList.remove('open');
 }
-
 // PRODUCTOS
 async function cargarProductos() { try { const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc'); productosGlobal = data || []; renderizarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 function renderizarProductos() {
