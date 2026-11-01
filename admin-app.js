@@ -107,6 +107,17 @@ function renderizarProductos() {
   if (!productosGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay productos.</p>'; return; }
   cont.innerHTML = productosGlobal.map(p => `<div class="card"><img src="${p.imagen_url || ''}"><div class="card-body"><h3>${esc(p.nombre)}</h3><div class="price">${moneda(precioNum(p.precio))}</div><div class="card-actions"><button class="btn-edit" onclick="editarProducto('${p.id}')" style="background:#3498db;">✏️ Editar</button><button class="btn-delete" onclick="eliminarProducto('${p.id}')" style="background:#e74c3c;">🗑️ Borrar</button></div></div></div>`).join('');
 }
+function eliminarProducto(id) { 
+  confirmarAccion('Eliminar Producto', '¿Seguro que quieres borrar esta pizza?', async () => { 
+    try { 
+      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); 
+      mostrarAlerta('Producto eliminado.'); 
+      cargarProductos(); 
+    } catch (error) { 
+      mostrarAlerta('Error: ' + error.message, 'error'); 
+    } 
+  }); 
+}
 function abrirModalNuevo() { 
   document.getElementById('modal-title').textContent = 'Nuevo Producto'; 
   document.getElementById('prod-id-original').value = ''; 
