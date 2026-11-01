@@ -60,11 +60,18 @@
     border: none; 
     border-bottom: 1px solid #eee; 
     position: relative; 
-    text-align: left; /* Alineamos el texto a la izquierda para que no se apiñe */
-    padding: 35px 15px 15px 15px !important; /* Damos espacio arriba para la etiqueta */
+    text-align: left; 
+    padding: 35px 15px 15px 15px !important; 
     font-size: 0.9rem; 
     min-height: 45px; 
     line-height: 1.4;
+  }
+  
+  /* Celda de Detalle del pedido */
+  .tabla-pedidos td:nth-of-type(3) { 
+    padding-top: 40px !important; 
+    line-height: 1.5;
+    font-size: 0.85rem;
   }
   
   .tabla-pedidos td:last-child { 
@@ -113,11 +120,33 @@
     max-height: 95vh !important;
     padding: 20px !important;
   }
+}
 
-  /* --- 6. IMPRESIÓN Y PREVISUALIZACIÓN DE TICKET --- */
-  /* Hacemos que el ticket de impresión sea más ancho en móviles */
-  #ticket-impresion {
-    width: 100% !important;
-    padding: 15px !important;
+/* --- 6. BOTÓN DE VER DETALLE EN MÓVIL --- */
+.btn-ver-detalle { display: none; } /* Oculto por defecto en ordenador */
+
+@media (max-width: 850px) {
+  /* Ocultar el texto del detalle en móvil */
+  .tabla-pedidos .texto-detalle { display: none !important; }
+  
+  /* Mostrar el botón en móvil */
+  .tabla-pedidos .btn-ver-detalle { 
+    display: block !important; 
+    width: 100%; 
+    background: #3498db; 
+    color: white; 
+    border: none; 
+    padding: 10px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: bold;
+    text-align: center;
+    margin-top: 5px;
+  }
+
+  /* Ajustar la celda */
+  .tabla-pedidos td.celda-detalle {
+    padding: 10px !important;
+    text-align: center;
   }
 }
