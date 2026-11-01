@@ -122,31 +122,35 @@
   }
 }
 
-/* --- 6. BOTÓN DE VER DETALLE EN MÓVIL --- */
-.btn-ver-detalle { display: none; } /* Oculto por defecto en ordenador */
+/* =========================================
+   BOTÓN DE VER DETALLE EN MÓVIL (A PRUEBA DE BALAS)
+   ========================================= */
+
+/* En ordenador: el botón está oculto y el texto se ve */
+.btn-ver-detalle { display: none !important; }
+.texto-detalle { display: block !important; }
 
 @media (max-width: 850px) {
-  /* Ocultar el texto del detalle en móvil */
-  .tabla-pedidos .texto-detalle { display: none !important; }
-  
-  /* Mostrar el botón en móvil */
-  .tabla-pedidos .btn-ver-detalle { 
-    display: block !important; 
-    width: 100%; 
-    background: #3498db; 
-    color: white; 
-    border: none; 
-    padding: 10px; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-weight: bold;
-    text-align: center;
-    margin-top: 5px;
+  /* En móvil: ocultamos el texto por completo */
+  .texto-detalle { 
+    display: none !important; 
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
-
-  /* Ajustar la celda */
-  .tabla-pedidos td.celda-detalle {
-    padding: 10px !important;
-    text-align: center;
+  
+  /* En móvil: mostramos el botón */
+  .btn-ver-detalle { 
+    display: block !important; 
+    visibility: visible !important;
+    width: 100% !important; 
+    background: #3498db !important; 
+    color: white !important; 
+    border: none !important; 
+    padding: 10px !important; 
+    border-radius: 6px !important; 
+    cursor: pointer !important; 
+    font-weight: bold !important;
+    text-align: center !important;
   }
 }
