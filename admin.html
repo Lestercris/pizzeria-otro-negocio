@@ -721,11 +721,14 @@
         mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
       }
     }
-    function renderizarPedidosAdmin() {
+        function renderizarPedidosAdmin() {
       const tbody = document.getElementById('tabla-pedidos-body');
       if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
       const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
       const pedidosPagina = pedidosGlobal.slice(inicio, inicio + pedidosPorPagina);
+
+      // 🔥 DETECTAMOS SI ES MÓVIL EN EL MOMENTO DE PINTAR
+      const esMovil = window.innerWidth <= 850;
 
       tbody.innerHTML = pedidosPagina.map(p => {
         // 🔥 Nuevos colores para los nuevos estados
@@ -743,10 +746,12 @@
           <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
           <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
           
-          <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: Clases para el texto y el botón -->
+          <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: El texto o el botón se pintan directamente -->
           <td class="celda-detalle" style="padding:12px; max-width:280px; font-size:0.8rem;">
-            <span class="texto-detalle">${esc(p.detalle)}</span>
-            <button class="btn-ver-detalle" onclick="verDetallePedido('${esc(p.order_id)}')">👁️ Ver detalle</button>
+            ${esMovil 
+              ? `<button onclick="verDetallePedido('${esc(p.order_id)}')" style="width: 100%; background: #3498db; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">👁️ Ver detalle</button>` 
+              : `<span>${esc(p.detalle)}</span>`
+            }
           </td>
           
           <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
