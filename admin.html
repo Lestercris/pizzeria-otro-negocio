@@ -651,7 +651,7 @@
         mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
       }
     }
-    function renderizarPedidosAdmin() {
+        function renderizarPedidosAdmin() {
       const tbody = document.getElementById('tabla-pedidos-body');
       if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
       const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
@@ -672,7 +672,10 @@
         return `<tr style="border-bottom: 1px solid #eee;">
           <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
           <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
-          <td style="padding:12px; max-width:280px; font-size:0.8rem;">${esc(p.detalle)}</td>
+          <td style="padding:12px; max-width:280px; font-size:0.8rem;">
+            <span class="detalle-texto">${esc(p.detalle)}</span>
+            <button class="btn-ver-detalle" onclick="verDetallePedido('${esc(p.order_id)}')">👁️ Ver detalle</button>
+          </td>
           <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
           <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${estadoClase}">${esc(p.estado)}</span></td>
           <td style="padding:12px;">
@@ -693,8 +696,7 @@
       const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
       document.getElementById('paginacion-pedidos').style.display = 'flex';
       document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
-    }
-      
+    }      
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
