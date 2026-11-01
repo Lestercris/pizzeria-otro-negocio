@@ -720,9 +720,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Si el usuario ya tiene sesión guardada, lo dejamos pasar directo
+   // 2. Si el usuario ya tiene sesión guardada, lo dejamos pasar directo
   const session = AuthGuard.getSession();
   if (session) {
+    // 🔥 Si es de cocina, lo mandamos a su monitor, no al panel de admin
+    if (session.rol === 'cocina') {
+      window.location.href = 'cocina.html';
+      return;
+    }
+
     // Ocultamos el login
     document.getElementById('login-screen').style.display = 'none';
     // Mostramos el panel
