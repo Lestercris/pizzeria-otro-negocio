@@ -1,0 +1,728 @@
+// ==========================================
+// LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
+// ==========================================
+
+const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
+
+let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], usuariosGlobal = [], paginaPedidosActual = 1;
+const pedidosPorPagina = 10;
+
+function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
+function precioNum(valor) { if (typeof valor === 'number') return isFinite(valor) ? valor : 0; let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, ''); if (!s) return 0; if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); } const n = parseFloat(s); return isNaN(n) ? 0 : n; }
+
+async function fetchSupabase(endpoint, options = {}) {
+  const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...options.headers };
+  const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Error'); }
+  return res.json();
+}
+
+function mostrarAlerta(mensaje, tipo = 'success') {
+  const box = document.getElementById('alert-box'); box.textContent = mensaje;
+  box.style.background = tipo === 'success' ? '#d4edda' : '#f8d7da';
+  box.style.color = tipo === 'success' ? '#155724' : '#721c24';
+  box.style.display = 'block'; setTimeout(() => { box.style.display = 'none'; }, 4000);
+}
+
+function confirmarAccion(titulo, mensaje, callback) {
+  const overlay = document.createElement('div');
+  overlay.style = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;';
+  overlay.innerHTML = `<div style="background:white;padding:30px;border-radius:12px;max-width:400px;text-align:center;"><h2 style="color:var(--primary);margin-bottom:15px;">${titulo}</h2><p style="margin-bottom:25px;color:#555;">${mensaje}</p><div style="display:flex;gap:10px;justify-content:center;"><button style="background:#95a5a6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;" id="btn-no">Cancelar</button><button style="background:#e74c3c;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;" id="btn-si">Aceptar</button></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#btn-no').onclick = () => overlay.remove();
+  overlay.querySelector('#btn-si').onclick = () => { overlay.remove(); callback(); };
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.querySelector('#login-screen button');
+  btn.textContent = 'Verificando...';
+
+  try {
+    const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { 
+      method: 'POST', 
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ email, password: pass }) 
+    });
+    
+    if (!response.ok) throw new Error('Credenciales incorrectas');
+    await response.json();
+    
+    const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
+    let nombreMostrar = email, rolReal = 'empleado';
+    
+    if (perfiles && perfiles.length > 0) { 
+      rolReal = perfiles[0].rol || 'empleado'; 
+      nombreMostrar = perfiles[0].nombre || email; 
+    }
+     if (email === 'isahyles123@gmail.com') { 
+      rolReal = 'admin'; 
+      nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; 
+    }
+
+    AuthGuard.saveSession(email, rolReal);
+
+    if (rolReal === 'cocina') { 
+      window.location.href = 'cocina.html'; 
+      return; 
+    }
+    
+    document.getElementById('login-screen').style.display = 'none'; 
+    document.getElementById('sidebar').classList.remove('hidden-panel'); 
+    document.getElementById('main-panel').classList.remove('hidden-panel');
+    document.getElementById('user-display-name').textContent = nombreMostrar; 
+    document.getElementById('user-display-role').textContent = rolReal;
+    
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
+    
+    cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
+    
+  } catch (error) { 
+    document.getElementById('login-msg').textContent = error.message; 
+    document.getElementById('login-msg').style.display = 'block'; 
+    btn.textContent = 'Entrar al Panel'; 
+  }
+}
+
+function logout() { 
+  AuthGuard.logout();
+}
+
+function mostrarSeccion(id, event) { 
+  ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => { document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none'; }); 
+  document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active')); 
+  
+  if(event) event.target.classList.add('active'); 
+  if(id === 'resenas') cargarResenas(); if(id === 'pedidos') cargarPedidos(); if(id === 'slider') cargarSlides(); if(id === 'usuarios') cargarUsuarios(); 
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// PRODUCTOS
+async function cargarProductos() { try { const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc'); productosGlobal = data || []; renderizarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+function renderizarProductos() {
+  const cont = document.getElementById('lista-productos');
+  if (!productosGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay productos.</p>'; return; }
+  cont.innerHTML = productosGlobal.map(p => `<div class="card"><img src="${p.imagen_url || ''}"><div class="card-body"><h3>${esc(p.nombre)}</h3><div class="price">${moneda(precioNum(p.precio))}</div><div class="card-actions"><button class="btn-edit" onclick="editarProducto('${p.id}')" style="background:#3498db;">✏️ Editar</button><button class="btn-delete" onclick="eliminarProducto('${p.id}')" style="background:#e74c3c;">🗑️ Borrar</button></div></div></div>`).join('');
+}
+function abrirModalNuevo() { 
+  document.getElementById('modal-title').textContent = 'Nuevo Producto'; 
+  document.getElementById('prod-id-original').value = ''; 
+  document.getElementById('prod-id').value = 'Automático'; 
+  document.getElementById('prod-nombre').value = ''; 
+  document.getElementById('prod-precio').value = ''; 
+  document.getElementById('prod-categoria').value = 'Pizzas'; 
+  document.getElementById('prod-desc').value = ''; 
+  document.getElementById('prod-ingredientes').value = ''; 
+  document.getElementById('prod-imagen').value = ''; 
+  document.getElementById('prod-disponible').checked = true; 
+  document.getElementById('preview-prod').style.display = 'none'; 
+  document.getElementById('status-imagen').textContent = 'Sin imagen seleccionada';
+  document.getElementById('status-imagen').style.color = '#888';
+  document.getElementById('file-prod').value = ''; 
+  document.getElementById('modal-producto').style.display = 'flex'; 
+}
+
+function editarProducto(id) {
+  const p = productosGlobal.find(x => String(x.id) === String(id)); 
+  if (!p) return;
+  document.getElementById('modal-title').textContent = 'Editar Producto'; 
+  document.getElementById('prod-id-original').value = p.id; 
+  document.getElementById('prod-id').value = p.id; 
+  document.getElementById('prod-nombre').value = p.nombre || ''; 
+  document.getElementById('prod-precio').value = p.precio || ''; 
+  document.getElementById('prod-categoria').value = p.categoria || 'Pizzas'; 
+  document.getElementById('prod-desc').value = p.descripcion || ''; 
+  document.getElementById('prod-ingredientes').value = p.ingredientes || ''; 
+  document.getElementById('prod-imagen').value = p.imagen_url || ''; 
+  document.getElementById('prod-disponible').checked = (p.disponible === true || p.disponible === 'true'); 
+  
+  if (p.imagen_url) { 
+    document.getElementById('preview-prod').src = p.imagen_url; 
+    document.getElementById('preview-prod').style.display = 'block'; 
+    document.getElementById('status-imagen').textContent = 'Imagen actual cargada';
+    document.getElementById('status-imagen').style.color = '#27ae60';
+  } else { 
+    document.getElementById('preview-prod').style.display = 'none'; 
+    document.getElementById('status-imagen').textContent = 'Sin imagen seleccionada';
+    document.getElementById('status-imagen').style.color = '#888';
+  }
+  document.getElementById('file-prod').value = ''; 
+  document.getElementById('modal-producto').style.display = 'flex';
+}
+
+async function guardarProducto() {
+  const idOriginal = document.getElementById('prod-id-original').value; 
+  const nombre = document.getElementById('prod-nombre').value.trim(); 
+  const precio = precioNum(document.getElementById('prod-precio').value); 
+  const categoria = document.getElementById('prod-categoria').value; 
+  const descripcion = document.getElementById('prod-desc').value.trim(); 
+  const ingredientes = document.getElementById('prod-ingredientes').value.trim(); 
+  const imagen_url = document.getElementById('prod-imagen').value.trim(); 
+  const disponible = document.getElementById('prod-disponible').checked; 
+
+  if (!nombre || precio <= 0) { 
+    mostrarAlerta('Nombre y precio obligatorios.', 'error'); 
+    return; 
+  }
+
+  const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
+
+  try { 
+    if (idOriginal) { 
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error('Error al actualizar en Supabase');
+      mostrarAlerta('Producto actualizado.'); 
+    } else { 
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error('Error al crear en Supabase');
+      mostrarAlerta('Producto creado.'); 
+    } 
+    document.getElementById('modal-producto').style.display = 'none'; 
+    cargarProductos(); 
+  } catch (error) { 
+    mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+  }
+}
+
+async function subirImagenProducto(input) { 
+  const file = input.files[0]; if (!file) return; 
+  try { 
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `prod_${Date.now()}.${ext}`;
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, { 
+      method: 'POST', 
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, 
+      body: file 
+    }); 
+    if (!res.ok) throw new Error('Error al subir. Revisa las políticas de Storage.'); 
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/imagenes/${fileName}`;
+    document.getElementById('prod-imagen').value = publicUrl; 
+    document.getElementById('preview-prod').src = publicUrl; 
+    document.getElementById('preview-prod').style.display = 'block'; 
+    mostrarAlerta('Imagen subida con éxito.'); 
+  } catch (error) { 
+    mostrarAlerta('Error: ' + error.message, 'error'); 
+  } 
+}
+
+// SLIDER
+async function cargarSlides() { 
+  try { 
+    const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc'); 
+    slidesGlobal = data || []; 
+    renderizarSlides(); 
+  } catch (error) { 
+    mostrarAlerta('Error slider: ' + error.message, 'error'); 
+  } 
+}
+
+function renderizarSlides() {
+  const cont = document.getElementById('lista-slides');
+  if (!slidesGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay imágenes.</p>'; return; }
+  cont.innerHTML = slidesGlobal.map(s => `<div class="card"><img src="${s.imagen_url}"><div class="card-body"><h3>${esc(s.titulo || 'Sin título')}</h3><div class="card-actions"><button class="btn-delete" onclick="eliminarSlide('${s.id}')" style="width:100%; background:#e74c3c;">🗑️ Borrar</button></div></div></div>`).join('');
+}
+
+function abrirModalSlide() {
+  document.getElementById('slide-titulo').value = ''; document.getElementById('slide-subtitulo').value = ''; document.getElementById('slide-imagen').value = '';
+  document.getElementById('preview-slide').style.display = 'none';
+  document.getElementById('modal-slider').style.display = 'flex';
+}
+
+async function guardarSlide() {
+  const titulo = document.getElementById('slide-titulo').value.trim(); const subtitulo = document.getElementById('slide-subtitulo').value.trim(); const imagen_url = document.getElementById('slide-imagen').value.trim();
+  if (!imagen_url) { mostrarAlerta('Sube una imagen.', 'error'); return; }
+  try { 
+    await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify({ titulo, subtitulo, imagen_url, activo: true, orden: slidesGlobal.length }) }); 
+    document.getElementById('modal-slider').style.display = 'none'; 
+    mostrarAlerta('Imagen añadida.'); 
+    cargarSlides(); 
+  } catch (error) { 
+    mostrarAlerta('Error: ' + error.message, 'error'); 
+  }
+}
+
+function eliminarSlide(id) { 
+  confirmarAccion('Eliminar Imagen', '¿Quitar esta imagen?', async () => { 
+    try { 
+      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); 
+      mostrarAlerta('Eliminada.'); 
+      cargarSlides(); 
+    } catch (error) { 
+      mostrarAlerta('Error: ' + error.message, 'error'); 
+    } 
+  }); 
+}
+
+async function subirImagenSlide(input) {
+  const file = input.files[0]; if (!file) return;
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `slide_${Date.now()}.${ext}`;
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, {
+      method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
+    });
+    if (!res.ok) throw new Error('Error al subir');
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/imagenes/${fileName}`;
+    document.getElementById('slide-imagen').value = publicUrl;
+    document.getElementById('preview-slide').src = publicUrl; document.getElementById('preview-slide').style.display = 'block';
+    mostrarAlerta('Imagen subida.');
+  } catch (error) { mostrarAlerta('Error imagen: ' + error.message, 'error'); }
+}
+
+// PEDIDOS
+async function cargarPedidos() {
+  try { 
+    const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc'); 
+    pedidosGlobal = data || []; 
+    paginaPedidosActual = 1; 
+    renderizarPedidosAdmin(); 
+    mostrarAlerta('Pedidos actualizados.');
+  } catch (error) { 
+    mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
+  }
+}
+
+function renderizarPedidosAdmin() {
+  const tbody = document.getElementById('tabla-pedidos-body');
+  if (!pedidosGlobal.length) { 
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; 
+    document.getElementById('paginacion-pedidos').style.display = 'none'; 
+    return; 
+  }
+  
+  const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
+  const pedidosPagina = pedidosGlobal.slice(inicio, inicio + pedidosPorPagina);
+
+  tbody.innerHTML = pedidosPagina.map(p => {
+    const estadoClase = { 
+      'Pendiente': 'background:#fff3cd; color:#856404', 
+      'Pagado': 'background:#d4edda; color:#155724', 
+      'En preparación': 'background:#cce5ff; color:#004085', 
+      'Listo': 'background:#d1ecf1; color:#0c5460', 
+      'En reparto': 'background:#e2e3e5; color:#383d41',
+      'Entregado': 'background:#27ae60; color:#ffffff', 
+      'Cancelado': 'background:#f8d7da; color:#721c24' 
+    }[p.estado] || 'background:#fff3cd; color:#856404';
+
+    return `<tr style="border-bottom: 1px solid #eee;">
+      <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
+      <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
+      
+      <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: Dejamos que el CSS decida cuál mostrar -->
+      <td class="celda-detalle" style="padding:12px; max-width:280px; font-size:0.8rem;">
+        <span class="texto-detalle">${esc(p.detalle)}</span>
+        <button class="btn-ver-detalle" onclick="verDetallePedido('${esc(p.order_id)}')">
+          👁️ Ver detalle
+        </button>
+      </td>
+      
+      <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
+      <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${estadoClase}">${esc(p.estado)}</span></td>
+      <td style="padding:12px;">
+        <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%;">
+          <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
+          <option value="Pagado" ${p.estado==='Pagado'?'selected':''}>Pagado</option>
+          <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
+          <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
+          <option value="En reparto" ${p.estado==='En reparto'?'selected':''}>En reparto</option>
+          <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
+          <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
+        </select>
+        <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+  document.getElementById('paginacion-pedidos').style.display = 'flex';
+  document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
+}
+
+// FUNCIONES DEL MODAL DETALLE (MÓVIL)
+function verDetallePedido(orderId) {
+  const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+  if (!pedido) return;
+
+  const detalleContent = document.getElementById('detalle-pedido-content');
+  
+  const items = pedido.detalle ? pedido.detalle.split(',').map(item => {
+    return `<div style="padding: 10px; background: #f8f9fa; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #3498db; font-size: 0.95rem;">
+      ${esc(item.trim())}
+    </div>`;
+  }).join('') : '<p>Sin detalle</p>';
+
+  detalleContent.innerHTML = `
+    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+      <p style="margin-bottom: 5px;"><strong>Ticket:</strong> ${esc(pedido.order_id)}</p>
+      <p style="margin-bottom: 5px;"><strong>Cliente:</strong> ${esc(pedido.nombre_cliente)}</p>
+      <p><strong>Total:</strong> <span style="color: #27ae60; font-weight: bold; font-size: 1.2rem;">${moneda(precioNum(pedido.total))}</span></p>
+    </div>
+    <div>
+      <h3 style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 10px; text-transform: uppercase;">Productos:</h3>
+      ${items}
+    </div>
+  `;
+
+  document.getElementById('modal-detalle-pedido').style.display = 'flex';
+}
+
+function cerrarModalDetalle() {
+  document.getElementById('modal-detalle-pedido').style.display = 'none';
+}
+
+// CONFIGURACIÓN
+async function cargarConfiguracion() {
+  try {
+    const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+    const config = {}; 
+    (data || []).forEach(item => { config[item.clave] = item.valor; });
+    
+    document.getElementById('cfg-nombre').value = config.nombre_negocio || ''; 
+    document.getElementById('cfg-empresa').value = config.empresa || ''; 
+    document.getElementById('cfg-cif').value = config.cif || ''; 
+    document.getElementById('cfg-promo').value = config.promocion || ''; 
+    document.getElementById('cfg-telefono').value = config.telefono || ''; 
+    document.getElementById('cfg-whatsapp').value = config.whatsapp || ''; 
+    document.getElementById('cfg-direccion').value = config.direccion || ''; 
+    document.getElementById('cfg-horario').value = config.horario || ''; 
+    document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
+    
+    const stripeOn = config.stripe_habilitado === 'true'; 
+    document.getElementById('cfg-stripe').checked = stripeOn; 
+    document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
+    
+    document.getElementById('cfg-stripe-public').value = config.stripe_public_key || '';
+    document.getElementById('cfg-stripe-url').value = config.stripe_payment_url || '';
+    
+    const stripeContainer = document.getElementById('stripe-keys-container');
+    if (stripeContainer) {
+        stripeContainer.style.display = stripeOn ? 'block' : 'none';
+    }
+
+    if (config.nombre_negocio) document.getElementById('admin-header-title').textContent = '🍕 ' + config.nombre_negocio;
+    
+  } catch (error) { 
+    console.error(error); 
+  }
+}
+
+async function guardarConfiguracion() {
+  const valores = { 
+    nombre_negocio: document.getElementById('cfg-nombre').value.trim(), 
+    empresa: document.getElementById('cfg-empresa').value.trim(), 
+    cif: document.getElementById('cfg-cif').value.trim(), 
+    promocion: document.getElementById('cfg-promo').value.trim(), 
+    telefono: document.getElementById('cfg-telefono').value.trim(), 
+    whatsapp: document.getElementById('cfg-whatsapp').value.trim(), 
+    direccion: document.getElementById('cfg-direccion').value.trim(), 
+    horario: document.getElementById('cfg-horario').value.trim(), 
+    ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(), 
+    stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false',
+    stripe_public_key: document.getElementById('cfg-stripe-public').value.trim(),
+    stripe_payment_url: document.getElementById('cfg-stripe-url').value.trim()
+  };
+
+  try { 
+    const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] })); 
+    await fetchSupabase('/rest/v1/configuracion', { 
+      method: 'POST', 
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' }, 
+      body: JSON.stringify(payload) 
+    }); 
+    document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado'; 
+    mostrarAlerta('Configuración guardada correctamente.'); 
+  } catch (error) { 
+    mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+  }
+}
+
+// RESEÑAS
+async function cargarResenas() { try { const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc'); renderizarResenasAdmin(data || []); } catch (error) { mostrarAlerta('Error reseñas: ' + error.message, 'error'); } }
+
+function renderizarResenasAdmin(resenas) {
+  const cont = document.getElementById('lista-resenas-admin');
+  if (!resenas.length) { cont.innerHTML = '<p style="color:#999">No hay reseñas.</p>'; return; }
+  cont.innerHTML = resenas.map(r => `<div style="border-bottom:1px solid #eee;padding:15px 0;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${esc(r.nombre)}</strong><span style="color:#f1c40f;margin-left:10px;">${'★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas)}</span><small style="color:#999;margin-left:10px;">${new Date(r.fecha).toLocaleDateString('es-ES')}</small></div><div><span style="background:${r.aprobada ? '#d4edda' : '#fff3cd'}; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${r.aprobada ? 'Publicada' : 'Pendiente'}</span></div></div><p style="margin:8px 0;font-style:italic;">"${esc(r.comentario)}"</p><div style="display:flex;gap:8px;">${!r.aprobada ? `<button onclick="aprobarResena('${r.id}', true)" style="padding:6px 12px;border:none;border-radius:6px;background:#27ae60;color:white;cursor:pointer;">✅ Aprobar</button>` : `<button onclick="aprobarResena('${r.id}', false)" style="padding:6px 12px;border:none;border-radius:6px;background:#f39c12;color:white;cursor:pointer;">🚫 Ocultar</button>`}<button onclick="eliminarResena('${r.id}')" style="padding:6px 12px;border:none;border-radius:6px;background:#e74c3c;color:white;cursor:pointer;">🗑️ Eliminar</button></div></div>`).join('');
+}
+
+async function aprobarResena(id, aprobar) { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: aprobar }) }); mostrarAlerta(aprobar ? 'Publicada.' : 'Ocultada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+
+function eliminarResena(id) { 
+  confirmarAccion('Eliminar Reseña', '¿Borrar esta reseña definitivamente?', async () => { 
+    try { 
+      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); 
+      mostrarAlerta('Eliminada.'); 
+      cargarResenas(); 
+    } catch (error) { 
+      mostrarAlerta('Error: ' + error.message, 'error'); 
+    } 
+  }); 
+}
+
+// GESTIÓN DE USUARIOS
+async function cargarUsuarios() {
+  try {
+    const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
+    
+    usuariosGlobal = perfiles.map(p => ({ 
+        id: p.id, 
+        email: p.email, 
+        nombre: p.nombre || 'Sin nombre', 
+        rol: p.rol || 'empleado',
+        telefono: p.telefono || ''
+    }));
+
+    const tbody = document.getElementById('tabla-usuarios-body');
+    if (!usuariosGlobal.length) { 
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No hay usuarios.</td></tr>'; 
+      return; 
+    }
+
+    tbody.innerHTML = usuariosGlobal.map(u => `
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:12px; font-weight:bold;">${u.nombre}</td>
+        <td style="padding:12px;">${u.email}</td>
+        <td style="padding:12px;"><span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${u.rol.toUpperCase()}</span></td>
+        <td style="padding:12px; display: flex; gap: 5px; flex-wrap: wrap;">
+          <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#3498db; color:white; cursor:pointer;">✏️ Editar</button>
+          <button onclick="abrirModalPassword('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#f39c12; color:white; cursor:pointer;">🔑 Clave</button>
+          ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer;">🗑️ Eliminar</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (error) { 
+    document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
+  }
+}
+
+function abrirModalPassword(userId) {
+  document.getElementById('pass-user-id').value = userId;
+  document.getElementById('pass-nueva').value = '';
+  document.getElementById('modal-password').style.display = 'flex';
+}
+
+async function guardarNuevaPassword() {
+  const userId = document.getElementById('pass-user-id').value;
+  const nuevaPass = document.getElementById('pass-nueva').value;
+
+  if (!nuevaPass || nuevaPass.length < 6) {
+    mostrarAlerta('La contraseña debe tener al menos 6 caracteres.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-update-password`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userId, newPassword: nuevaPass })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error al actualizar');
+
+    document.getElementById('modal-password').style.display = 'none';
+    mostrarAlerta('Contraseña actualizada correctamente.');
+  } catch (error) {
+    mostrarAlerta('Error: ' + error.message, 'error');
+  }
+}
+
+function abrirModalEditarUsuario(userId) {
+  const u = usuariosGlobal.find(x => x.id === userId);
+  if (!u) return;
+  document.getElementById('edit-user-id').value = u.id;
+  document.getElementById('edit-user-name').value = u.nombre === 'Sin nombre' ? '' : u.nombre;
+  document.getElementById('edit-user-phone').value = u.telefono || '';
+  document.getElementById('edit-user-role').value = u.rol;
+  document.getElementById('modal-editar-usuario').style.display = 'flex';
+}
+
+async function guardarEdicionUsuario() {
+  const userId = document.getElementById('edit-user-id').value;
+  const nombre = document.getElementById('edit-user-name').value.trim();
+  const telefono = document.getElementById('edit-user-phone').value.trim();
+  const rol = document.getElementById('edit-user-role').value;
+
+  if (!nombre) {
+    mostrarAlerta('El nombre es obligatorio.', 'error');
+    return;
+  }
+
+  try {
+    await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ nombre, telefono, rol })
+    });
+    document.getElementById('modal-editar-usuario').style.display = 'none';
+    mostrarAlerta('Datos del empleado actualizados.');
+    cargarUsuarios();
+  } catch (error) {
+    mostrarAlerta('Error al editar: ' + error.message, 'error');
+  }
+}
+
+function eliminarUsuario(userId, email) {
+  if (email === 'isahyles123@gmail.com') { 
+    mostrarAlerta('No puedes eliminar al Súper Admin.', 'error'); 
+    return; 
+  }
+  confirmarAccion('Eliminar Usuario', `¿Seguro que quieres eliminar a ${email}?`, async () => {
+    try {
+      await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' });
+      mostrarAlerta('Perfil de usuario eliminado.'); 
+      cargarUsuarios();
+    } catch (error) { 
+      mostrarAlerta('Error: ' + error.message, 'error'); 
+    }
+  });
+}
+
+async function crearEmpleado() {
+  const nombre = document.getElementById('new-user-name').value.trim();
+  const email = document.getElementById('new-user-email').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const telefono = document.getElementById('new-user-phone').value.trim();
+  const rol = document.getElementById('new-user-role').value;
+
+  if (!nombre || !email || !pass) {
+    mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password: pass, nombre, telefono, rol })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error al crear el usuario');
+
+    mostrarAlerta('Usuario creado con éxito.');
+    document.getElementById('new-user-name').value = '';
+    document.getElementById('new-user-email').value = '';
+    document.getElementById('new-user-pass').value = '';
+    document.getElementById('new-user-phone').value = '';
+    cargarUsuarios();
+  } catch (error) {
+    mostrarAlerta('Error: ' + error.message, 'error');
+  }
+}
+
+// ==========================================
+// BACKUP Y LIMPIEZA
+// ==========================================
+async function descargarBackup() { 
+  try { 
+    mostrarAlerta('Generando backup...', 'success'); 
+    const tablas = ['productos', 'pedidos', 'slides', 'resenas', 'configuracion']; 
+    let backupData = {}; 
+    for (const tabla of tablas) { 
+      backupData[tabla] = await fetchSupabase(`/rest/v1/${tabla}?select=*`); 
+    } 
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' }); 
+    const url = URL.createObjectURL(blob); 
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = `backup_pizzeria_${new Date().toISOString().split('T')[0]}.json`; 
+    a.click(); 
+    URL.revokeObjectURL(url); 
+  } catch (error) { 
+    mostrarAlerta('Error: ' + error.message, 'error'); 
+  } 
+}
+
+function restaurarBackup(input) { 
+  const file = input.files[0]; if (!file) return; 
+  confirmarAccion('Restaurar Backup', '¿Sobrescribir los datos actuales?', () => { 
+    const reader = new FileReader(); 
+    reader.onload = async (e) => { 
+      try { 
+        const data = JSON.parse(e.target.result); 
+        for (const tabla in data) { 
+          await fetchSupabase(`/rest/v1/${tabla}`, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(data[tabla]) }); 
+        } 
+        mostrarAlerta('Backup restaurado.'); 
+        cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); 
+      } catch (error) { 
+        mostrarAlerta('Error: ' + error.message, 'error'); 
+      } 
+    }; 
+    reader.readAsText(file); 
+  }); 
+}
+
+function limpiarBaseDeDatos() {
+  confirmarAccion('¡CUIDADO!', 'Esto borrará TODOS los pedidos, productos, reseñas y el slider. Esta acción es irreversible.', async () => {
+    try {
+      mostrarAlerta('Borrando datos...', 'success');
+      const tablas = ['pedidos', 'resenas', 'slides', 'productos'];
+      
+      for (const tabla of tablas) {
+        await fetchSupabase(`/rest/v1/${tabla}?id=neq.0`, { method: 'DELETE' });
+      }
+      
+      mostrarAlerta('Base de datos limpia correctamente.');
+      cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas();
+    } catch (error) {
+      mostrarAlerta('Error al limpiar: ' + error.message, 'error');
+    }
+  });
+}
+
+// ==========================================
+// INICIALIZACIÓN DE LA APP
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  
+  // 1. Lógica del checkbox de Stripe
+  const stripeCheck = document.getElementById('cfg-stripe');
+  const stripeContainer = document.getElementById('stripe-keys-container');
+  if (stripeCheck && stripeContainer) {
+    stripeCheck.addEventListener('change', () => {
+      stripeContainer.style.display = stripeCheck.checked ? 'block' : 'none';
+      document.getElementById('stripe-status-text').textContent = stripeCheck.checked ? 'Activado' : 'Desactivado';
+    });
+  }
+
+  // 2. Si el usuario ya tiene sesión guardada, lo dejamos pasar directo
+  const session = AuthGuard.getSession();
+  if (session) {
+    // Ocultamos el login
+    document.getElementById('login-screen').style.display = 'none';
+    // Mostramos el panel
+    document.getElementById('sidebar').classList.remove('hidden-panel');
+    document.getElementById('main-panel').classList.remove('hidden-panel');
+    
+    // Pintamos los datos del usuario
+    document.getElementById('user-display-name').textContent = session.email;
+    document.getElementById('user-display-role').textContent = session.rol;
+    
+    if (session.rol === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+    }
+
+    // Cargamos los datos
+    cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
+  }
+});
