@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monitor de Cocina - KDS</title>
   
-  <!-- Seguridad y Estilos -->
   <script src="auth.js"></script>
   <link rel="stylesheet" href="cocina.css">
 </head>
@@ -70,24 +69,25 @@
     let miNombre = localStorage.getItem('cocina_nombre') || '';
     let intervaloCarga = null;
 
-    // 🔥 SOLUCIÓN AL PARPADEO: Todo se ejecuta cuando el DOM está listo
+    // 🔥 SOLUCIÓN AL BUCLE: Todo encapsulado y verificado
     document.addEventListener('DOMContentLoaded', async () => {
       
-      // 1. Verificamos la sesión de forma segura
+      // Comprobación segura de AuthGuard
       if (typeof AuthGuard === 'undefined') {
-        console.error("AuthGuard no está definido. Redirigiendo...");
+        console.error("AuthGuard no cargó. Redirigiendo al login.");
         window.location.href = 'admin.html';
         return;
       }
 
       const session = AuthGuard.getSession();
+      
+      // Si no hay sesión, token o el rol es incorrecto, lo echamos
       if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
-        // Si no hay sesión, mandamos al login (UNA SOLA VEZ)
         window.location.href = 'admin.html';
         return;
       }
 
-      // 2. Si la sesión es válida, arrancamos la app
+      // Si todo está bien, arrancamos la app
       await cargarCocinerosDesdeBD();
       const select = document.getElementById('select-cocinero');
       
@@ -103,7 +103,6 @@
         }
       }
 
-      // 3. Iniciamos el reloj
       setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
     });
 
