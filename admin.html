@@ -5,18 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración</title>
   
-  <!-- Scripts de seguridad y librerías externas -->
   <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   
-  <!-- Fuentes y Estilos -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="admin-mobile.css?v=2">
 </head>
 <body>
 
-  <!-- 🔥 PANTALLA DE LOGIN -->
+  <!-- LOGIN -->
   <div id="login-screen">
     <div class="login-box">
       <h2>Panel de Administración</h2>
@@ -29,10 +27,9 @@
     </div>
   </div>
 
-  <!-- 🔥 BOTÓN DE MENÚ PARA MÓVILES -->
   <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">☰</button>
 
-  <!-- 🔥 MENÚ LATERAL (SIDEBAR) -->
+  <!-- SIDEBAR -->
   <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
     <div class="user-profile">
@@ -49,11 +46,10 @@
     <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
   </div>
 
-  <!-- 🔥 CONTENIDO PRINCIPAL -->
+  <!-- CONTENIDO -->
   <div class="main-content hidden-panel" id="main-panel">
     <div id="alert-box" style="padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500;"></div>
 
-    <!-- SECCIÓN: PRODUCTOS -->
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
@@ -62,7 +58,6 @@
       <div class="grid-productos" id="lista-productos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
 
-    <!-- SECCIÓN: PEDIDOS -->
     <div id="seccion-pedidos" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Pedidos</h1>
@@ -81,7 +76,6 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: SLIDER -->
     <div id="seccion-slider" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Carrusel de Inicio</h1>
@@ -90,7 +84,6 @@
       <div class="grid-slider" id="lista-slides" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
 
-    <!-- SECCIÓN: RESEÑAS -->
     <div id="seccion-resenas" style="display: none;">
       <h1>Gestión de Reseñas</h1>
       <div class="seccion-card">
@@ -98,7 +91,6 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: CONFIGURACIÓN -->
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div class="seccion-card">
@@ -147,7 +139,6 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Gestión de Usuarios</h1>
       <div class="seccion-card" style="margin-bottom: 20px;">
@@ -174,8 +165,7 @@
     </div>
   </div>
 
-  <!-- 🔥 MODALES -->
-  <!-- Modal Producto -->
+  <!-- MODALES -->
   <div class="modal" id="modal-producto">
     <div class="modal-content">
       <h2 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Nuevo Producto</h2>
@@ -202,7 +192,6 @@
     </div>
   </div>
 
-  <!-- Modal Slider -->
   <div class="modal" id="modal-slider">
     <div class="modal-content">
       <h2 style="margin-bottom: 20px; color: var(--primary);">Nueva Imagen del Slider</h2>
@@ -218,7 +207,6 @@
     </div>
   </div>
 
-  <!-- Modal Password -->
   <div class="modal" id="modal-password">
     <div class="modal-content" style="max-width: 400px; text-align: center;">
       <h2 style="color: var(--primary); margin-bottom: 15px;">Cambiar Contraseña</h2>
@@ -231,7 +219,6 @@
     </div>
   </div>
 
-  <!-- Modal Editar Usuario -->
   <div class="modal" id="modal-editar-usuario">
     <div class="modal-content" style="max-width: 400px;">
       <h2 style="color: var(--primary); margin-bottom: 20px;">Editar Empleado</h2>
@@ -251,7 +238,6 @@
     </div>
   </div>
 
-  <!-- Modal Ticket Preview -->
   <div class="modal" id="modal-ticket-preview" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999;">
     <div style="background: white; border-radius: 12px; width: 100%; max-width: 400px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header-oscuro">
@@ -266,7 +252,6 @@
     </div>
   </div>
 
-  <!-- Modal Detalle Pedido Móvil -->
   <div class="modal" id="modal-detalle-pedido" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10000;">
     <div style="background: white; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header-oscuro" style="margin: 0; border-radius: 12px 12px 0 0;">
@@ -280,7 +265,6 @@
     </div>
   </div>
 
-  <!-- 🔥 SCRIPTS DE LA APLICACIÓN -->
   <script src="admin-app.js"></script>
   <script src="admin-mobile.js"></script>
   <script src="admin-ticket.js"></script>
