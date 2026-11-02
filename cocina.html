@@ -70,12 +70,24 @@
     let miNombre = localStorage.getItem('cocina_nombre') || '';
     let intervaloCarga = null;
 
-    const session = AuthGuard.getSession();
-    if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
-      window.location.href = 'admin.html'; 
-    }
-
+    // 🔥 SOLUCIÓN AL PARPADEO: Todo se ejecuta cuando el DOM está listo
     document.addEventListener('DOMContentLoaded', async () => {
+      
+      // 1. Verificamos la sesión de forma segura
+      if (typeof AuthGuard === 'undefined') {
+        console.error("AuthGuard no está definido. Redirigiendo...");
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      const session = AuthGuard.getSession();
+      if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
+        // Si no hay sesión, mandamos al login (UNA SOLA VEZ)
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      // 2. Si la sesión es válida, arrancamos la app
       await cargarCocinerosDesdeBD();
       const select = document.getElementById('select-cocinero');
       
@@ -90,6 +102,9 @@
           miNombre = "";
         }
       }
+
+      // 3. Iniciamos el reloj
+      setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
     });
 
     async function cargarCocinerosDesdeBD() {
@@ -138,8 +153,6 @@
       if (intervaloCarga) clearInterval(intervaloCarga);
       intervaloCarga = setInterval(obtenerPedidos, 10000);
     }
-
-    setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
 
     async function obtenerPedidos() {
       if (!miNombre) return;
