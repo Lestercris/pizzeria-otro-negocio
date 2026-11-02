@@ -69,25 +69,19 @@
     let miNombre = localStorage.getItem('cocina_nombre') || '';
     let intervaloCarga = null;
 
-    // 🔥 SOLUCIÓN AL BUCLE: Todo encapsulado y verificado
+    // Comprobación inicial de seguridad
     document.addEventListener('DOMContentLoaded', async () => {
-      
-      // Comprobación segura de AuthGuard
       if (typeof AuthGuard === 'undefined') {
-        console.error("AuthGuard no cargó. Redirigiendo al login.");
         window.location.href = 'admin.html';
         return;
       }
 
       const session = AuthGuard.getSession();
-      
-      // Si no hay sesión, token o el rol es incorrecto, lo echamos
       if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
         window.location.href = 'admin.html';
         return;
       }
 
-      // Si todo está bien, arrancamos la app
       await cargarCocinerosDesdeBD();
       const select = document.getElementById('select-cocinero');
       
