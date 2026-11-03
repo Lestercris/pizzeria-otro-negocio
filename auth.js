@@ -3,7 +3,7 @@ const AuthGuard = {
     const sessionData = {
       email: email,
       rol: rol,
-      token: accessToken, // 🔥 Token de Supabase
+      token: accessToken, 
       timestamp: new Date().getTime()
     };
     localStorage.setItem('pizzeria_session', JSON.stringify(sessionData));
@@ -12,7 +12,11 @@ const AuthGuard = {
   getSession: () => {
     const session = localStorage.getItem('pizzeria_session');
     if (!session) return null;
-    return JSON.parse(session);
+    try {
+        return JSON.parse(session);
+    } catch (e) {
+        return null;
+    }
   },
 
   logout: () => {
@@ -24,14 +28,13 @@ const AuthGuard = {
   protectPage: (requiredRoles = []) => {
     const session = AuthGuard.getSession();
 
-    if (!session || !session.token) {
-      window.location.href = 'admin.html';
-      return false;
+    // 🔥 COMPROBACIÓN A PRUEBA DE FALLOS
+    // Si no hay sesión, o no hay token, o el token no es una cadena válida...
+    if (!session || !session.token || session.token === 'undefined') {
+      return false; // Devolvemos false, sin redirigir
     }
 
     if (requiredRoles.length > 0 && !requiredRoles.includes(session.rol)) {
-      alert('No tienes permisos para acceder a esta sección.');
-      window.location.href = 'admin.html';
       return false;
     }
 
