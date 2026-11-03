@@ -1,6 +1,25 @@
 // ==========================================
 // LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
 // ==========================================
+// ==========================================
+// LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
+// ==========================================
+// ==========================================
+// LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
+// ==========================================
+
+// 🔥 FRENO DE MANO PARA MÓVILES (Evita el bucle de redirección)
+if (typeof AuthGuard === 'undefined') {
+  // Si el móvil aún no ha cargado auth.js, recargamos la página UNA vez.
+  // Esto soluciona el parpadeo porque el script de auth ya estará en caché.
+  if (!sessionStorage.getItem('retry_auth')) {
+    sessionStorage.setItem('retry_auth', 'true');
+    window.location.reload();
+  } else {
+    sessionStorage.removeItem('retry_auth');
+    console.error("Error crítico: auth.js no se pudo cargar.");
+  }
+}
 
 const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
