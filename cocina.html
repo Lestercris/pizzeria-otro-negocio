@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monitor de Cocina - KDS</title>
   
+  <!-- Seguridad y Estilos -->
   <script src="auth.js"></script>
   <link rel="stylesheet" href="cocina.css">
 </head>
@@ -69,19 +70,29 @@
     let miNombre = localStorage.getItem('cocina_nombre') || '';
     let intervaloCarga = null;
 
-    // Comprobación inicial de seguridad
+    // 🔥 COMPROBACIÓN A PRUEBA DE BUCLE
     document.addEventListener('DOMContentLoaded', async () => {
+      
+      // 1. Verificamos que AuthGuard exista
       if (typeof AuthGuard === 'undefined') {
-        window.location.href = 'admin.html';
+        if (!sessionStorage.getItem('retry_auth')) {
+            sessionStorage.setItem('retry_auth', 'true');
+            window.location.reload();
+        }
         return;
       }
 
+      // 2. Comprobamos la sesión
       const session = AuthGuard.getSession();
       if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
-        window.location.href = 'admin.html';
+        // Usamos 'replace' para que el botón "Atrás" del móvil no vuelva a meterte en el bucle.
+        window.location.replace('admin.html');
         return;
       }
-
+      
+      // 3. Si todo está bien, limpiamos la bandera y arrancamos
+      sessionStorage.removeItem('retry_auth');
+      
       await cargarCocinerosDesdeBD();
       const select = document.getElementById('select-cocinero');
       
@@ -97,6 +108,7 @@
         }
       }
 
+      // 4. Iniciamos el reloj
       setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
     });
 
