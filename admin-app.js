@@ -93,7 +93,10 @@ async function login() {
 }
 
 function logout() { 
-  AuthGuard.logout();
+  localStorage.removeItem('pizzeria_session');
+  localStorage.removeItem('cocina_nombre');
+  // Forzamos la redirección y recarga limpia
+  window.location.href = 'admin.html';
 }
 
 function mostrarSeccion(id, event) { 
