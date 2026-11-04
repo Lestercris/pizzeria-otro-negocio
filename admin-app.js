@@ -119,18 +119,25 @@ function logout() {
 
 let intervaloAutoRefresco = null;
 
+let intervaloAutoRefresco = null;
+
 function mostrarSeccion(id, event) { 
   ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => { document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none'; }); 
   document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active')); 
   
   if(event) event.target.classList.add('active'); 
   
-  // 🔥 AUTO-REFRESCO: Si entramos a pedidos, actualizamos cada 5 segundos
+  // 🔥 Auto-refresco silencioso cada 15 segundos
   if (intervaloAutoRefresco) clearInterval(intervaloAutoRefresco);
 
   if(id === 'pedidos') { 
+    window.actualizacionSilenciosa = false;
     cargarPedidos(); 
-    intervaloAutoRefresco = setInterval(cargarPedidos, 5000); // 5000 ms = 5 segundos
+    
+    intervaloAutoRefresco = setInterval(() => {
+        window.actualizacionSilenciosa = true; // 🔥 Le decimos que NO muestre el mensaje
+        cargarPedidos();
+    }, 15000); // 15000 ms = 15 segundos
   } 
   if(id === 'resenas') cargarResenas(); 
   if(id === 'slider') cargarSlides(); 
@@ -138,7 +145,6 @@ function mostrarSeccion(id, event) {
   
   document.getElementById('sidebar').classList.remove('open');
 }
-
 // PRODUCTOS
 async function cargarProductos() { try { const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc'); productosGlobal = data || []; renderizarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 function renderizarProductos() {
@@ -333,20 +339,37 @@ async function subirImagenSlide(input) {
     mostrarAlerta('Imagen subida.');
   } catch (error) { mostrarAlerta('Error imagen: ' + error.message, 'error'); }
 }
-
 // PEDIDOS
 async function cargarPedidos() {
+  // 🔥 Guardamos dónde está mirando el admin antes de actualizar
+  const contenedor = document.querySelector('#seccion-pedidos > div');
+  const scrollActual = contenedor ? contenedor.scrollTop : 0;
+  const scrollVentana = window.scrollY;
+
   try { 
     const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc'); 
     pedidosGlobal = data || []; 
-    paginaPedidosActual = 1; 
+    // Solo reiniciamos a la página 1 si es una carga manual (cuando el usuario hace clic en el botón)
+    if (!window.actualizacionSilenciosa) {
+        paginaPedidosActual = 1; 
+        mostrarAlerta('Pedidos actualizados.');
+    }
     renderizarPedidosAdmin(); 
-    mostrarAlerta('Pedidos actualizados.');
+    
+    // 🔥 Restauramos la posición del scroll
+    if (contenedor) contenedor.scrollTop = scrollActual;
+    window.scrollTo(0, scrollVentana);
+    
   } catch (error) { 
     mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
   }
 }
 
+// 🔥 Nueva función para el botón "Actualizar" manual
+function actualizarPedidosManual() {
+    window.actualizacionSilenciosa = false; // Forzamos a que se muestre el mensaje
+    cargarPedidos();
+}
 function renderizarPedidosAdmin() {
   const tbody = document.getElementById('tabla-pedidos-body');
   if (!pedidosGlobal.length) { 
