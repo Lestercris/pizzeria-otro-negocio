@@ -117,12 +117,25 @@ function logout() {
   AuthGuard.logout();
 }
 
+let intervaloAutoRefresco = null;
+
 function mostrarSeccion(id, event) { 
   ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => { document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none'; }); 
   document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active')); 
   
   if(event) event.target.classList.add('active'); 
-  if(id === 'resenas') cargarResenas(); if(id === 'pedidos') cargarPedidos(); if(id === 'slider') cargarSlides(); if(id === 'usuarios') cargarUsuarios(); 
+  
+  // 🔥 AUTO-REFRESCO: Si entramos a pedidos, actualizamos cada 5 segundos
+  if (intervaloAutoRefresco) clearInterval(intervaloAutoRefresco);
+
+  if(id === 'pedidos') { 
+    cargarPedidos(); 
+    intervaloAutoRefresco = setInterval(cargarPedidos, 5000); // 5000 ms = 5 segundos
+  } 
+  if(id === 'resenas') cargarResenas(); 
+  if(id === 'slider') cargarSlides(); 
+  if(id === 'usuarios') cargarUsuarios(); 
+  
   document.getElementById('sidebar').classList.remove('open');
 }
 
