@@ -70,32 +70,31 @@
     let miNombre = localStorage.getItem('cocina_nombre') || '';
     let intervaloCarga = null;
 
-    // 🔥 COMPROBACIÓN A PRUEBA DE BUCLE
+    // 🔥 INICIALIZACIÓN Y CONTROL DE ACCESO
     document.addEventListener('DOMContentLoaded', async () => {
       
-      // 1. Verificamos que AuthGuard exista
-      if (typeof AuthGuard === 'undefined') {
-        if (!sessionStorage.getItem('retry_auth')) {
-            sessionStorage.setItem('retry_auth', 'true');
-            window.location.reload();
-        }
-        return;
+      if (typeof AuthGuard === 'undefined') return;
+      
+      const session = AuthGuard.getSession();
+      
+      // Si no hay sesión, mandamos al login
+      if (!session || !session.token) {
+          window.location.replace('admin.html');
+          return;
       }
 
-      // 2. Comprobamos la sesión
-      const session = AuthGuard.getSession();
-      if (!session || !session.token || (session.rol !== 'admin' && session.rol !== 'cocina')) {
-        // Usamos 'replace' para que el botón "Atrás" del móvil no vuelva a meterte en el bucle.
-        window.location.replace('admin.html');
-        return;
+      // Si hay sesión, pero no es admin ni cocina, lo bloqueamos
+      if (session.rol !== 'admin' && session.rol !== 'cocina') {
+          alert('No tienes permisos para el monitor de cocina.');
+          window.location.replace('admin.html');
+          return;
       }
-      
-      // 3. Si todo está bien, limpiamos la bandera y arrancamos
-      sessionStorage.removeItem('retry_auth');
-      
+
+      // Si es admin o cocina, le dejamos ver la pantalla
       await cargarCocinerosDesdeBD();
       const select = document.getElementById('select-cocinero');
       
+      // Si el cocinero ya tenía su nombre guardado, lo seleccionamos
       if (miNombre) {
         const existe = Array.from(select.options).some(opt => opt.value === miNombre);
         if (existe) {
@@ -108,7 +107,7 @@
         }
       }
 
-      // 4. Iniciamos el reloj
+      // Iniciamos el reloj
       setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
     });
 
@@ -162,8 +161,15 @@
     async function obtenerPedidos() {
       if (!miNombre) return;
       try {
+        // 🔥 USAMOS EL TOKEN DEL USUARIO LOGUEADO PARA LEER PEDIDOS
+        const session = AuthGuard.getSession();
+        const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pagado,Pendiente,En preparación)&order=fecha.asc', {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+          headers: { 
+            'apikey': SUPABASE_ANON_KEY, 
+            'Authorization': 'Bearer ' + token 
+          }
         });
         if (!response.ok) throw new Error('Error de red');
         const pedidos = await response.json();
@@ -235,8 +241,11 @@
       pedidosGlobal = pedidosGlobal.map(p => p.order_id === orderId ? { ...p, estado: 'En preparación', cocinero: miNombre } : p);
       renderizarPedidos(pedidosGlobal);
       try {
+        const session = AuthGuard.getSession();
+        const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + encodeURIComponent(orderId), {
-          method: 'PATCH', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          method: 'PATCH', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify({ estado: 'En preparación', cocinero: miNombre })
         });
         if (!response.ok) throw new Error('Error al actualizar');
@@ -248,8 +257,11 @@
       pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
       renderizarPedidos(pedidosGlobal);
       try {
+        const session = AuthGuard.getSession();
+        const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + encodeURIComponent(orderId), {
-          method: 'PATCH', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          method: 'PATCH', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify({ estado: nuevoEstado })
         });
         if (!response.ok) throw new Error('Error al actualizar');
