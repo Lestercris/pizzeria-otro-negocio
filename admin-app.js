@@ -519,23 +519,44 @@ async function guardarConfiguracion() {
       headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' }, 
       body: JSON.stringify(payload) 
     }); 
-    document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado'; 
-    mostrarAlerta('Configuración guardada correctamente.'); 
-  } catch (error) { 
-    mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+document.addEventListener('DOMContentLoaded', () => {
+  
+  if (typeof AuthGuard === 'undefined') {
+      document.getElementById('login-screen').style.display = 'flex';
+      return;
   }
-}
 
-// RESEÑAS
-async function cargarResenas() { try { const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc'); renderizarResenasAdmin(data || []); } catch (error) { mostrarAlerta('Error reseñas: ' + error.message, 'error'); } }
+  const session = AuthGuard.getSession();
+  
+  // 🔥 SI NO HAY SESIÓN, MOSTRAMOS LOGIN (Pero NO redirigimos a cocina)
+  if (!session || !session.token) {
+      document.getElementById('login-screen').style.display = 'flex';
+      return;
+  }
 
-function renderizarResenasAdmin(resenas) {
-  const cont = document.getElementById('lista-resenas-admin');
-  if (!resenas.length) { cont.innerHTML = '<p style="color:#999">No hay reseñas.</p>'; return; }
-  cont.innerHTML = resenas.map(r => `<div style="border-bottom:1px solid #eee;padding:15px 0;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${esc(r.nombre)}</strong><span style="color:#f1c40f;margin-left:10px;">${'★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas)}</span><small style="color:#999;margin-left:10px;">${new Date(r.fecha).toLocaleDateString('es-ES')}</small></div><div><span style="background:${r.aprobada ? '#d4edda' : '#fff3cd'}; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${r.aprobada ? 'Publicada' : 'Pendiente'}</span></div></div><p style="margin:8px 0;font-style:italic;">"${esc(r.comentario)}"</p><div style="display:flex;gap:8px;">${!r.aprobada ? `<button onclick="aprobarResena('${r.id}', true)" style="padding:6px 12px;border:none;border-radius:6px;background:#27ae60;color:white;cursor:pointer;">✅ Aprobar</button>` : `<button onclick="aprobarResena('${r.id}', false)" style="padding:6px 12px;border:none;border-radius:6px;background:#f39c12;color:white;cursor:pointer;">🚫 Ocultar</button>`}<button onclick="eliminarResena('${r.id}')" style="padding:6px 12px;border:none;border-radius:6px;background:#e74c3c;color:white;cursor:pointer;">🗑️ Eliminar</button></div></div>`).join('');
-}
+  // 🔥 SI HAY SESIÓN, OCULTAMOS LOGIN Y MOSTRAMOS EL PANEL (sea admin o cocina)
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('sidebar').classList.remove('hidden-panel');
+  document.getElementById('main-panel').classList.remove('hidden-panel');
+  
+  document.getElementById('user-display-name').textContent = session.email;
+  document.getElementById('user-display-role').textContent = session.rol;
+  
+  // Si es admin, mostramos los botones extra (Configuración, Usuarios)
+  if (session.rol === 'admin') {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+  }
 
-async function aprobarResena(id, aprobar) { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: aprobar }) }); mostrarAlerta(aprobar ? 'Publicada.' : 'Ocultada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+  // Lógica del checkbox de Stripe
+  const stripeCheck = document.getElementById('cfg-stripe');
+  const stripeContainer = document.getElementById('stripe-keys-container');
+  if (stripeCheck && stripeContainer) {
+    stripeCheck.addEventListener('change', () => {
+      stripeContainer.style.display = stripeCheck.checked ? 'block' : 'none';
+      document.getElementById('stripe-status-text').textContent = stripeCheck.checked ? 'Activado' : 'Desactivado';
+    });
+  }
 
-function eliminarResena(id) { 
-  confirmarAccion('Eliminar Reseña', '¿Bor
+  // Cargamos los datos
+  cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
+});
