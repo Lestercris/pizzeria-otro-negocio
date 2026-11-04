@@ -1,17 +1,9 @@
 // ==========================================
 // LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
 // ==========================================
-// ==========================================
-// LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
-// ==========================================
-// ==========================================
-// LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
-// ==========================================
 
 // 🔥 FRENO DE MANO PARA MÓVILES (Evita el bucle de redirección)
 if (typeof AuthGuard === 'undefined') {
-  // Si el móvil aún no ha cargado auth.js, recargamos la página UNA vez.
-  // Esto soluciona el parpadeo porque el script de auth ya estará en caché.
   if (!sessionStorage.getItem('retry_auth')) {
     sessionStorage.setItem('retry_auth', 'true');
     window.location.reload();
@@ -31,8 +23,18 @@ function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, c 
 function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
 function precioNum(valor) { if (typeof valor === 'number') return isFinite(valor) ? valor : 0; let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, ''); if (!s) return 0; if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); } const n = parseFloat(s); return isNaN(n) ? 0 : n; }
 
+// 🔥 FUNCIÓN CLAVE: Usa el token del usuario para que el RLS no bloquee las acciones
 async function fetchSupabase(endpoint, options = {}) {
-  const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...options.headers };
+  const session = AuthGuard.getSession();
+  const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+  
+  const headers = { 
+    'apikey': SUPABASE_ANON_KEY, 
+    'Authorization': 'Bearer ' + token, 
+    'Content-Type': 'application/json', 
+    'Prefer': 'return=representation', 
+    ...options.headers 
+  };
   const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
   if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Error'); }
   return res.json();
@@ -112,10 +114,7 @@ async function login() {
 }
 
 function logout() { 
-  localStorage.removeItem('pizzeria_session');
-  localStorage.removeItem('cocina_nombre');
-  // Forzamos la redirección y recarga limpia
-  window.location.href = 'admin.html';
+  AuthGuard.logout();
 }
 
 function mostrarSeccion(id, event) { 
@@ -126,6 +125,7 @@ function mostrarSeccion(id, event) {
   if(id === 'resenas') cargarResenas(); if(id === 'pedidos') cargarPedidos(); if(id === 'slider') cargarSlides(); if(id === 'usuarios') cargarUsuarios(); 
   document.getElementById('sidebar').classList.remove('open');
 }
+
 // PRODUCTOS
 async function cargarProductos() { try { const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc'); productosGlobal = data || []; renderizarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 function renderizarProductos() {
@@ -209,20 +209,16 @@ async function guardarProducto() {
 
   try { 
     if (idOriginal) { 
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
+      await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, {
         method: 'PATCH',
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error('Error al actualizar en Supabase');
       mostrarAlerta('Producto actualizado.'); 
     } else { 
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
+      await fetchSupabase('/rest/v1/productos', {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error('Error al crear en Supabase');
       mostrarAlerta('Producto creado.'); 
     } 
     document.getElementById('modal-producto').style.display = 'none'; 
@@ -237,9 +233,13 @@ async function subirImagenProducto(input) {
   try { 
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const fileName = `prod_${Date.now()}.${ext}`;
+    
+    const session = AuthGuard.getSession();
+    const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+
     const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, { 
       method: 'POST', 
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, 
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': file.type, 'x-upsert': 'true' }, 
       body: file 
     }); 
     if (!res.ok) throw new Error('Error al subir. Revisa las políticas de Storage.'); 
@@ -306,8 +306,12 @@ async function subirImagenSlide(input) {
   try {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const fileName = `slide_${Date.now()}.${ext}`;
+    
+    const session = AuthGuard.getSession();
+    const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
+
     const res = await fetch(`${SUPABASE_URL}/storage/v1/object/imagenes/${fileName}`, {
-      method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
+      method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
     });
     if (!res.ok) throw new Error('Error al subir');
     const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/imagenes/${fileName}`;
@@ -356,7 +360,6 @@ function renderizarPedidosAdmin() {
       <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
       <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
       
-      <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: Dejamos que el CSS decida cuál mostrar -->
       <td class="celda-detalle" style="padding:12px; max-width:280px; font-size:0.8rem;">
         <span class="texto-detalle">${esc(p.detalle)}</span>
         <button class="btn-ver-detalle" onclick="verDetallePedido('${esc(p.order_id)}')">
@@ -366,8 +369,9 @@ function renderizarPedidosAdmin() {
       
       <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
       <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${estadoClase}">${esc(p.estado)}</span></td>
+      
       <td style="padding:12px;">
-        <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%;">
+        <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%; border:1px solid #ddd; border-radius:4px;">
           <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
           <option value="Pagado" ${p.estado==='Pagado'?'selected':''}>Pagado</option>
           <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
@@ -376,7 +380,10 @@ function renderizarPedidosAdmin() {
           <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
           <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
         </select>
-        <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
+        
+        <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="width:100%; padding:6px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer; font-size:0.8rem; margin-bottom:5px;">🖨️ Ticket</button>
+        
+        <button onclick="eliminarPedido('${esc(p.order_id)}')" style="width:100%; padding:6px; border:none; border-radius:5px; background:#e74c3c; color:white; cursor:pointer; font-size:0.8rem;">🗑️ Borrar</button>
       </td>
     </tr>`;
   }).join('');
@@ -384,6 +391,41 @@ function renderizarPedidosAdmin() {
   const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
   document.getElementById('paginacion-pedidos').style.display = 'flex';
   document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
+}
+
+function cambiarPaginaPedidos(direccion) {
+  const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+  const nuevaPagina = paginaPedidosActual + direccion;
+  if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+    paginaPedidosActual = nuevaPagina;
+    renderizarPedidosAdmin();
+    document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function eliminarPedido(orderId) {
+  confirmarAccion('Eliminar Pedido', '¿Seguro que quieres borrar este pedido?', async () => {
+    try {
+      await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${orderId}`, { method: 'DELETE' });
+      mostrarAlerta('Pedido eliminado.');
+      cargarPedidos();
+    } catch (error) {
+      mostrarAlerta('Error al eliminar: ' + error.message, 'error');
+    }
+  });
+}
+
+async function cambiarEstadoPedido(orderId, nuevoEstado) {
+  try {
+    await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${orderId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ estado: nuevoEstado })
+    });
+    mostrarAlerta('Estado actualizado.');
+    cargarPedidos(); // Recargamos para que se vea el cambio reflejado
+  } catch (error) {
+    mostrarAlerta('Error al actualizar: ' + error.message, 'error');
+  }
 }
 
 // FUNCIONES DEL MODAL DETALLE (MÓVIL)
@@ -496,276 +538,4 @@ function renderizarResenasAdmin(resenas) {
 async function aprobarResena(id, aprobar) { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: aprobar }) }); mostrarAlerta(aprobar ? 'Publicada.' : 'Ocultada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 
 function eliminarResena(id) { 
-  confirmarAccion('Eliminar Reseña', '¿Borrar esta reseña definitivamente?', async () => { 
-    try { 
-      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); 
-      mostrarAlerta('Eliminada.'); 
-      cargarResenas(); 
-    } catch (error) { 
-      mostrarAlerta('Error: ' + error.message, 'error'); 
-    } 
-  }); 
-}
-
-// GESTIÓN DE USUARIOS
-async function cargarUsuarios() {
-  try {
-    const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
-    
-    usuariosGlobal = perfiles.map(p => ({ 
-        id: p.id, 
-        email: p.email, 
-        nombre: p.nombre || 'Sin nombre', 
-        rol: p.rol || 'empleado',
-        telefono: p.telefono || ''
-    }));
-
-    const tbody = document.getElementById('tabla-usuarios-body');
-    if (!usuariosGlobal.length) { 
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No hay usuarios.</td></tr>'; 
-      return; 
-    }
-
-    tbody.innerHTML = usuariosGlobal.map(u => `
-      <tr style="border-bottom:1px solid #eee;">
-        <td style="padding:12px; font-weight:bold;">${u.nombre}</td>
-        <td style="padding:12px;">${u.email}</td>
-        <td style="padding:12px;"><span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${u.rol.toUpperCase()}</span></td>
-        <td style="padding:12px; display: flex; gap: 5px; flex-wrap: wrap;">
-          <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#3498db; color:white; cursor:pointer;">✏️ Editar</button>
-          <button onclick="abrirModalPassword('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#f39c12; color:white; cursor:pointer;">🔑 Clave</button>
-          ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer;">🗑️ Eliminar</button>` : ''}
-        </td>
-      </tr>
-    `).join('');
-  } catch (error) { 
-    document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
-  }
-}
-
-function abrirModalPassword(userId) {
-  document.getElementById('pass-user-id').value = userId;
-  document.getElementById('pass-nueva').value = '';
-  document.getElementById('modal-password').style.display = 'flex';
-}
-
-async function guardarNuevaPassword() {
-  const userId = document.getElementById('pass-user-id').value;
-  const nuevaPass = document.getElementById('pass-nueva').value;
-
-  if (!nuevaPass || nuevaPass.length < 6) {
-    mostrarAlerta('La contraseña debe tener al menos 6 caracteres.', 'error');
-    return;
-  }
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-update-password`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ userId, newPassword: nuevaPass })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Error al actualizar');
-
-    document.getElementById('modal-password').style.display = 'none';
-    mostrarAlerta('Contraseña actualizada correctamente.');
-  } catch (error) {
-    mostrarAlerta('Error: ' + error.message, 'error');
-  }
-}
-
-function abrirModalEditarUsuario(userId) {
-  const u = usuariosGlobal.find(x => x.id === userId);
-  if (!u) return;
-  document.getElementById('edit-user-id').value = u.id;
-  document.getElementById('edit-user-name').value = u.nombre === 'Sin nombre' ? '' : u.nombre;
-  document.getElementById('edit-user-phone').value = u.telefono || '';
-  document.getElementById('edit-user-role').value = u.rol;
-  document.getElementById('modal-editar-usuario').style.display = 'flex';
-}
-
-async function guardarEdicionUsuario() {
-  const userId = document.getElementById('edit-user-id').value;
-  const nombre = document.getElementById('edit-user-name').value.trim();
-  const telefono = document.getElementById('edit-user-phone').value.trim();
-  const rol = document.getElementById('edit-user-role').value;
-
-  if (!nombre) {
-    mostrarAlerta('El nombre es obligatorio.', 'error');
-    return;
-  }
-
-  try {
-    await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ nombre, telefono, rol })
-    });
-    document.getElementById('modal-editar-usuario').style.display = 'none';
-    mostrarAlerta('Datos del empleado actualizados.');
-    cargarUsuarios();
-  } catch (error) {
-    mostrarAlerta('Error al editar: ' + error.message, 'error');
-  }
-}
-
-function eliminarUsuario(userId, email) {
-  if (email === 'isahyles123@gmail.com') { 
-    mostrarAlerta('No puedes eliminar al Súper Admin.', 'error'); 
-    return; 
-  }
-  confirmarAccion('Eliminar Usuario', `¿Seguro que quieres eliminar a ${email}?`, async () => {
-    try {
-      await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' });
-      mostrarAlerta('Perfil de usuario eliminado.'); 
-      cargarUsuarios();
-    } catch (error) { 
-      mostrarAlerta('Error: ' + error.message, 'error'); 
-    }
-  });
-}
-
-async function crearEmpleado() {
-  const nombre = document.getElementById('new-user-name').value.trim();
-  const email = document.getElementById('new-user-email').value.trim();
-  const pass = document.getElementById('new-user-pass').value;
-  const telefono = document.getElementById('new-user-phone').value.trim();
-  const rol = document.getElementById('new-user-role').value;
-
-  if (!nombre || !email || !pass) {
-    mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error');
-    return;
-  }
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password: pass, nombre, telefono, rol })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Error al crear el usuario');
-
-    mostrarAlerta('Usuario creado con éxito.');
-    document.getElementById('new-user-name').value = '';
-    document.getElementById('new-user-email').value = '';
-    document.getElementById('new-user-pass').value = '';
-    document.getElementById('new-user-phone').value = '';
-    cargarUsuarios();
-  } catch (error) {
-    mostrarAlerta('Error: ' + error.message, 'error');
-  }
-}
-
-// ==========================================
-// BACKUP Y LIMPIEZA
-// ==========================================
-async function descargarBackup() { 
-  try { 
-    mostrarAlerta('Generando backup...', 'success'); 
-    const tablas = ['productos', 'pedidos', 'slides', 'resenas', 'configuracion']; 
-    let backupData = {}; 
-    for (const tabla of tablas) { 
-      backupData[tabla] = await fetchSupabase(`/rest/v1/${tabla}?select=*`); 
-    } 
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' }); 
-    const url = URL.createObjectURL(blob); 
-    const a = document.createElement('a'); 
-    a.href = url; 
-    a.download = `backup_pizzeria_${new Date().toISOString().split('T')[0]}.json`; 
-    a.click(); 
-    URL.revokeObjectURL(url); 
-  } catch (error) { 
-    mostrarAlerta('Error: ' + error.message, 'error'); 
-  } 
-}
-
-function restaurarBackup(input) { 
-  const file = input.files[0]; if (!file) return; 
-  confirmarAccion('Restaurar Backup', '¿Sobrescribir los datos actuales?', () => { 
-    const reader = new FileReader(); 
-    reader.onload = async (e) => { 
-      try { 
-        const data = JSON.parse(e.target.result); 
-        for (const tabla in data) { 
-          await fetchSupabase(`/rest/v1/${tabla}`, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(data[tabla]) }); 
-        } 
-        mostrarAlerta('Backup restaurado.'); 
-        cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); 
-      } catch (error) { 
-        mostrarAlerta('Error: ' + error.message, 'error'); 
-      } 
-    }; 
-    reader.readAsText(file); 
-  }); 
-}
-
-function limpiarBaseDeDatos() {
-  confirmarAccion('¡CUIDADO!', 'Esto borrará TODOS los pedidos, productos, reseñas y el slider. Esta acción es irreversible.', async () => {
-    try {
-      mostrarAlerta('Borrando datos...', 'success');
-      const tablas = ['pedidos', 'resenas', 'slides', 'productos'];
-      
-      for (const tabla of tablas) {
-        await fetchSupabase(`/rest/v1/${tabla}?id=neq.0`, { method: 'DELETE' });
-      }
-      
-      mostrarAlerta('Base de datos limpia correctamente.');
-      cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas();
-    } catch (error) {
-      mostrarAlerta('Error al limpiar: ' + error.message, 'error');
-    }
-  });
-}
-
-// ==========================================
-// INICIALIZACIÓN DE LA APP
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-  
-  // 1. Lógica del checkbox de Stripe
-  const stripeCheck = document.getElementById('cfg-stripe');
-  const stripeContainer = document.getElementById('stripe-keys-container');
-  if (stripeCheck && stripeContainer) {
-    stripeCheck.addEventListener('change', () => {
-      stripeContainer.style.display = stripeCheck.checked ? 'block' : 'none';
-      document.getElementById('stripe-status-text').textContent = stripeCheck.checked ? 'Activado' : 'Desactivado';
-    });
-  }
-
-   // 2. Si el usuario ya tiene sesión guardada, lo dejamos pasar directo
-  const session = AuthGuard.getSession();
-  if (session) {
-    // 🔥 Si es de cocina, lo mandamos a su monitor, no al panel de admin
-    if (session.rol === 'cocina') {
-      window.location.href = 'cocina.html';
-      return;
-    }
-
-    // Ocultamos el login
-    document.getElementById('login-screen').style.display = 'none';
-    // Mostramos el panel
-    document.getElementById('sidebar').classList.remove('hidden-panel');
-    document.getElementById('main-panel').classList.remove('hidden-panel');
-    
-    // Pintamos los datos del usuario
-    document.getElementById('user-display-name').textContent = session.email;
-    document.getElementById('user-display-role').textContent = session.rol;
-    
-    if (session.rol === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-    }
-
-    // Cargamos los datos
-    cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
-  }
-});
+  confirmarAccion('Eliminar Reseña', '¿Bor
