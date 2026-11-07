@@ -1,3 +1,7 @@
+let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], usuariosGlobal = [], paginaPedidosActual = 1;
+let intervaloAutoRefresco = null;
+let registrosPorPagina = 10; // 🔥 ESTA LÍNEA DEBE ESTAR AQUÍ
+const pedidosPorPagina = 10; 
 // ==========================================
 // LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
 // ==========================================
