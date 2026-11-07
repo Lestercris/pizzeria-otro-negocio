@@ -515,7 +515,7 @@
         document.getElementById('btn-pagar').textContent = 'Pagar y Enviar Pedido';
       }
     }
-        async function procesarPedido() {
+          async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
@@ -562,7 +562,9 @@
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             order_id: orderId, nombre_cliente: nombre, email_cliente: email,
-            telefono: telefono, direccion: direccion, detalle: detalle.join(', '), total: total, 
+            telefono: telefono, direccion: direccion, 
+            detalle: JSON.stringify(detalle), // 🔥 GUARDAMOS COMO JSON (Lista real)
+            total: total, 
             estado: 'Pendiente' 
           })
         });
@@ -583,23 +585,31 @@
           }, 1500);
 
         } else {
-        const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
-        const configData = await configRes.json();
-        const telefonoNegocio = configData.length > 0 && configData[0].valor ? configData[0].valor : '34600000000';
+          // FLUJO CON WHATSAPP
+          const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+          const configData = await configRes.json();
+          const telefonoNegocio = configData.length > 0 && configData[0].valor ? configData[0].valor : '34600000000';
 
-        const mensajeWsp = 
-          `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
-          `----------------------\n` +
-          `🎫 *Ticket:* *${orderId}*\n` +
-          `💰 *TOTAL:* ${moneda(total)}\n\n` +
-          `👤 *CLIENTE:*\n📝 ${nombre}\n📞 ${telefono || 'No especificado'}\n📍 ${direccion || 'Recogida en tienda'}\n\n` +
-          `💬 _Os escribo para coordinar el pago._\n` +
-          `⚠️ _(Las pizzas están guardadas en el sistema)_`;
+          // 🔥 MENSAJE DE WHATSAPP MEJORADO Y NUMERADO
+          let mensajeWsp = 
+            `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
+            `----------------------\n` +
+            `🎫 *Ticket:* *${orderId}*\n` +
+            `💰 *TOTAL:* ${moneda(total)}\n\n` +
+            `👤 *CLIENTE:*\n📝 ${nombre}\n📞 ${telefono || 'No especificado'}\n📍 ${direccion || 'Recogida en tienda'}\n\n` +
+            `🛒 *PRODUCTOS:*\n`;
 
-        const msg = encodeURIComponent(mensajeWsp);
-        const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
-        mostrarMensaje('¡Pedido guardado! Si WhatsApp no se abre, pulsa el icono verde.', 'ok');          
-          
+          detalle.forEach((prod, idx) => {
+              mensajeWsp += `${idx + 1}. ${prod}\n`;
+          });
+
+          mensajeWsp += `\n💬 _Os escribo para coordinar el pago._\n` +
+                        `⚠️ _(Las pizzas están guardadas en el sistema)_`;
+
+          const msg = encodeURIComponent(mensajeWsp);
+          const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
+          mostrarMensaje('¡Pedido guardado! Si WhatsApp no se abre, pulsa el icono verde.', 'ok');          
+            
           carrito = {}; 
           renderCarrito(); 
           
