@@ -59,12 +59,21 @@
       </div>
       <div class="grid-productos" id="lista-productos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
-
-    <div id="seccion-pedidos" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>Gestión de Pedidos</h1>
-        <button class="btn" style="width: auto; background: #3498db;" onclick="actualizarPedidosManual()">🔄 Actualizar</button>
-      </div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+  <h1>Gestión de Pedidos</h1>
+  
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <select id="registros-por-pagina" onchange="cambiarRegistrosPorPagina(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0; width: auto;">
+      <option value="10">Mostrar 10</option>
+      <option value="25">Mostrar 25</option>
+      <option value="50">Mostrar 50</option>
+      <option value="1000">Mostrar Todos</option>
+    </select>
+    
+    <button class="btn" style="width: auto; background: #3498db;" onclick="actualizarPedidosManual()">🔄 Actualizar</button>
+  </div>
+</div>
+    
       <div style="overflow-x: auto;">
         <table class="tabla-pedidos">
           <thead><tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
