@@ -610,28 +610,26 @@ async function cargarUsuarios() {
 
     const tbody = document.getElementById('tabla-usuarios-body');
     if (!usuariosGlobal.length) { 
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No hay usuarios.</td></tr>'; 
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#999;">No hay usuarios.</td></tr>'; 
       return; 
     }
 
     tbody.innerHTML = usuariosGlobal.map(u => `
-      <tr style="border-bottom:1px solid #eee;">
-        <td style="padding:12px; font-weight:bold;">${u.nombre}</td>
-        <td style="padding:12px;">${u.email}</td>
-        <td style="padding:12px;">
-          <span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">
+      <tr style="border-bottom: 1px solid #f1f1f1; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+        <td style="padding:15px; font-weight:600; color:#2c3e50;">${u.nombre}</td>
+        <td style="padding:15px; color:#666;">${u.email}</td>
+        <td style="padding:15px;">
+          <span style="background:#e3f2fd; color:#1976d2; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">
             ${u.rol.toUpperCase()}
           </span>
         </td>
-        
-        <!-- 🔥 CONTENEDOR DE BOTONES CORREGIDO -->
-        <td style="padding:12px; text-align: right;">
+        <td style="padding:15px; text-align: right;">
           <div style="display: inline-flex; gap: 8px;">
-            <button onclick="abrirModalEditarUsuario('${u.id}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">✏️ Editar</button>
+            <button onclick="abrirModalEditarUsuario('${u.id}')" title="Editar Usuario" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #e3f2fd; color: #1976d2; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#1976d2'; this.style.color='white';" onmouseout="this.style.background='#e3f2fd'; this.style.color='#1976d2';">✏️</button>
             
-            <button onclick="abrirModalPassword('${u.id}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #f39c12; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🔑 Clave</button>
+            <button onclick="abrirModalPassword('${u.id}')" title="Cambiar Contraseña" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #fff3e0; color: #f57c00; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f57c00'; this.style.color='white';" onmouseout="this.style.background='#fff3e0'; this.style.color='#f57c00';">🔑</button>
             
-            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #e74c3c; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🗑️ Eliminar</button>` : ''}
+            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" title="Eliminar Usuario" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #ffebee; color: #d32f2f; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#d32f2f'; this.style.color='white';" onmouseout="this.style.background='#ffebee'; this.style.color='#d32f2f';">🗑️</button>` : ''}
           </div>
         </td>
       </tr>
