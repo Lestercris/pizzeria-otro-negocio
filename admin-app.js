@@ -2,7 +2,6 @@
 // LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN
 // ==========================================
 
-// 🔥 FRENO DE MANO PARA MÓVILES (Evita el bucle de redirección)
 if (typeof AuthGuard === 'undefined') {
   if (!sessionStorage.getItem('retry_auth')) {
     sessionStorage.setItem('retry_auth', 'true');
@@ -16,15 +15,15 @@ if (typeof AuthGuard === 'undefined') {
 const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
 
+// 🔥 VARIABLES GLOBALES (SOLO SE DECLARAN UNA VEZ)
 let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], usuariosGlobal = [], paginaPedidosActual = 1;
 let intervaloAutoRefresco = null;
-const pedidosPorPagina = 10;
+let registrosPorPagina = 10; 
 
 function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
 function precioNum(valor) { if (typeof valor === 'number') return isFinite(valor) ? valor : 0; let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, ''); if (!s) return 0; if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); } const n = parseFloat(s); return isNaN(n) ? 0 : n; }
 
-// 🔥 FUNCIÓN CLAVE: Usa el token del usuario para que el RLS no bloquee las acciones
 async function fetchSupabase(endpoint, options = {}) {
   const session = AuthGuard.getSession();
   const token = session && session.token ? session.token : SUPABASE_ANON_KEY;
@@ -122,7 +121,6 @@ function mostrarSeccion(id, event) {
   
   if(event) event.target.classList.add('active'); 
   
-  // 🔥 Auto-refresco silencioso cada 15 segundos
   if (intervaloAutoRefresco) clearInterval(intervaloAutoRefresco);
 
   if(id === 'pedidos') { 
@@ -373,8 +371,8 @@ function renderizarPedidosAdmin() {
     return; 
   }
   
-  const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
-  const pedidosPagina = pedidosGlobal.slice(inicio, inicio + pedidosPorPagina);
+  const inicio = (paginaPedidosActual - 1) * registrosPorPagina;
+  const pedidosPagina = pedidosGlobal.slice(inicio, inicio + registrosPorPagina);
 
   tbody.innerHTML = pedidosPagina.map(p => {
     const estadoClase = { 
@@ -401,27 +399,32 @@ function renderizarPedidosAdmin() {
       <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
       <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${estadoClase}">${esc(p.estado)}</span></td>
       
-      <td style="padding:12px;">
-        <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%; border:1px solid #ddd; border-radius:4px;">
-          <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
-          <option value="Pagado" ${p.estado==='Pagado'?'selected':''}>Pagado</option>
-          <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
-          <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
-          <option value="En reparto" ${p.estado==='En reparto'?'selected':''}>En reparto</option>
-          <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
-          <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
-        </select>
-        
-        <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="width:100%; padding:6px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer; font-size:0.8rem; margin-bottom:5px;">🖨️ Ticket</button>
-        
-        <button onclick="eliminarPedido('${esc(p.order_id)}')" style="width:100%; padding:6px; border:none; border-radius:5px; background:#e74c3c; color:white; cursor:pointer; font-size:0.8rem;">🗑️ Borrar</button>
+      <td style="padding:12px; vertical-align: top; width: 140px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.85rem; width: 100%;">
+            <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
+            <option value="Pagado" ${p.estado==='Pagado'?'selected':''}>Pagado</option>
+            <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
+            <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
+            <option value="En reparto" ${p.estado==='En reparto'?'selected':''}>En reparto</option>
+            <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
+            <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
+          </select>
+          
+          <button onclick="mostrarTicketModal('${esc(p.order_id)}')" style="padding: 6px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-size: 0.85rem; font-weight: bold; width: 100%;">
+            🖨️ Ticket
+          </button>
+          <button onclick="eliminarPedido('${esc(p.order_id)}')" style="padding: 6px; border: none; border-radius: 6px; background: #e74c3c; color: white; cursor: pointer; font-size: 0.85rem; font-weight: bold; width: 100%;">
+            🗑️ Borrar
+          </button>
+        </div>
       </td>
     </tr>`;
   }).join('');
 
-  const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+  const totalPaginas = Math.ceil(pedidosGlobal.length / registrosPorPagina);
   document.getElementById('paginacion-pedidos').style.display = 'flex';
-  document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
+  document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas || 1}`;
 }
 
 function cambiarPaginaPedidos(direccion) {
@@ -433,11 +436,13 @@ function cambiarPaginaPedidos(direccion) {
     document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
   }
 }
+
 function cambiarRegistrosPorPagina(valor) {
   registrosPorPagina = parseInt(valor);
-  paginaPedidosActual = 1; // Volvemos a la primera página al cambiar el tamaño
+  paginaPedidosActual = 1; 
   renderizarPedidosAdmin();
 }
+
 function eliminarPedido(orderId) {
   confirmarAccion('Eliminar Pedido', '¿Seguro que quieres borrar este pedido?', async () => {
     try {
@@ -562,6 +567,15 @@ async function guardarConfiguracion() {
 }
 
 // RESEÑAS
+async function cargarResenas() { 
+  try { 
+    const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc'); 
+    renderizarResenasAdmin(data || []); 
+  } catch (error) { 
+    mostrarAlerta('Error reseñas: ' + error.message, 'error'); 
+  } 
+}
+
 function renderizarResenasAdmin(resenas) {
   const cont = document.getElementById('lista-resenas-admin');
   if (!resenas.length) { cont.innerHTML = '<p style="color:#999">No hay reseñas.</p>'; return; }
