@@ -625,11 +625,13 @@ async function cargarUsuarios() {
           </span>
         </td>
         <td style="padding:12px;">
-          <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: Botones en línea y más pequeños -->
+          <!-- 🔥 BOTONES CON ESTILOS EN LÍNEA PARA FORZAR EL DISEÑO -->
           <div style="display: flex; gap: 8px; justify-content: flex-end;">
-            <button onclick="abrirModalEditarUsuario('${u.id}')" class="btn-accion-tabla btn-ticket" style="width: auto;">✏️ Editar</button>
-            <button onclick="abrirModalPassword('${u.id}')" class="btn-accion-tabla" style="width: auto; background:#f39c12; color:white;">🔑 Clave</button>
-            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" class="btn-accion-tabla btn-borrar" style="width: auto;">🗑️ Eliminar</button>` : ''}
+            <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">✏️ Editar</button>
+            
+            <button onclick="abrirModalPassword('${u.id}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #f39c12; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🔑 Clave</button>
+            
+            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #e74c3c; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🗑️ Eliminar</button>` : ''}
           </div>
         </td>
       </tr>
@@ -637,8 +639,7 @@ async function cargarUsuarios() {
   } catch (error) { 
     document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
   }
-}
-function abrirModalPassword(userId) {
+}function abrirModalPassword(userId) {
   document.getElementById('pass-user-id').value = userId;
   document.getElementById('pass-nueva').value = '';
   document.getElementById('modal-password').style.display = 'flex';
