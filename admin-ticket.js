@@ -33,13 +33,30 @@ async function mostrarTicketModal(orderId) {
         ${pedido.direccion ? `<p style="margin: 2px 0;">Dir: ${esc(pedido.direccion)}</p>` : ''}
       </div>
       
-      <!-- 🔥 LISTA DE PRODUCTOS MEJORADA -->
+      <!-- 🔥 LISTA DE PRODUCTOS INTELIGENTE -->
       <div style="margin-bottom: 15px;">
-        ${(pedido.detalle || '').split(',').map((item, index) => `
-          <div style="padding: 6px 0; border-bottom: 1px dashed #ccc; font-size: 13px; line-height: 1.4;">
-            <strong>${index + 1}.</strong> ${esc(item.trim())}
-          </div>
-        `).join('')}
+        ${(() => {
+          let items = [];
+          try {
+            // Intentamos leerlo como JSON (el formato nuevo)
+            if (typeof pedido.detalle === 'string' && pedido.detalle.startsWith('[')) {
+              items = JSON.parse(pedido.detalle);
+            } else if (Array.isArray(pedido.detalle)) {
+              items = pedido.detalle;
+            } else {
+              // Si es un pedido viejo (separado por comas), hacemos el split de siempre
+              items = (pedido.detalle || '').split(',');
+            }
+          } catch (e) {
+            items = (pedido.detalle || '').split(',');
+          }
+          
+          return items.map((item, index) => `
+            <div style="padding: 6px 0; border-bottom: 1px dashed #ccc; font-size: 13px; line-height: 1.4;">
+              <strong>${index + 1}.</strong> ${esc(item.trim())}
+            </div>
+          `).join('');
+        })()}
       </div>
       
       <div style="border-top: 1px dashed #000; padding-top: 6px; text-align: right; font-weight: bold; font-size: 14px;">
