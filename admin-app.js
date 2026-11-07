@@ -619,11 +619,18 @@ async function cargarUsuarios() {
       <tr style="border-bottom:1px solid #eee;">
         <td style="padding:12px; font-weight:bold;">${u.nombre}</td>
         <td style="padding:12px;">${u.email}</td>
-        <td style="padding:12px;"><span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${u.rol.toUpperCase()}</span></td>
-        <td style="padding:12px; display: flex; gap: 5px; flex-wrap: wrap;">
-          <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#3498db; color:white; cursor:pointer;">✏️ Editar</button>
-          <button onclick="abrirModalPassword('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#f39c12; color:white; cursor:pointer;">🔑 Clave</button>
-          ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer;">🗑️ Eliminar</button>` : ''}
+        <td style="padding:12px;">
+          <span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">
+            ${u.rol.toUpperCase()}
+          </span>
+        </td>
+        <td style="padding:12px;">
+          <!-- 🔥 AQUÍ ESTÁ EL CAMBIO: Botones en línea y más pequeños -->
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button onclick="abrirModalEditarUsuario('${u.id}')" class="btn-accion-tabla btn-ticket" style="width: auto;">✏️ Editar</button>
+            <button onclick="abrirModalPassword('${u.id}')" class="btn-accion-tabla" style="width: auto; background:#f39c12; color:white;">🔑 Clave</button>
+            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" class="btn-accion-tabla btn-borrar" style="width: auto;">🗑️ Eliminar</button>` : ''}
+          </div>
         </td>
       </tr>
     `).join('');
@@ -631,7 +638,6 @@ async function cargarUsuarios() {
     document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
   }
 }
-
 function abrirModalPassword(userId) {
   document.getElementById('pass-user-id').value = userId;
   document.getElementById('pass-nueva').value = '';
