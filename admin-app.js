@@ -596,7 +596,6 @@ function eliminarResena(id) {
   }); 
 }
 
-// GESTIÓN DE USUARIOS
 async function cargarUsuarios() {
   try {
     const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
@@ -624,14 +623,15 @@ async function cargarUsuarios() {
             ${u.rol.toUpperCase()}
           </span>
         </td>
-        <td style="padding:12px;">
-          <!-- 🔥 BOTONES CON ESTILOS EN LÍNEA PARA FORZAR EL DISEÑO -->
-          <div style="display: flex; gap: 8px; justify-content: flex-end;">
-            <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">✏️ Editar</button>
+        
+        <!-- 🔥 CONTENEDOR DE BOTONES CORREGIDO -->
+        <td style="padding:12px; text-align: right;">
+          <div style="display: inline-flex; gap: 8px;">
+            <button onclick="abrirModalEditarUsuario('${u.id}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">✏️ Editar</button>
             
-            <button onclick="abrirModalPassword('${u.id}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #f39c12; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🔑 Clave</button>
+            <button onclick="abrirModalPassword('${u.id}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #f39c12; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🔑 Clave</button>
             
-            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding: 6px 12px; border: none; border-radius: 6px; background: #e74c3c; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🗑️ Eliminar</button>` : ''}
+            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="width: auto; padding: 6px 12px; border: none; border-radius: 6px; background: #e74c3c; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🗑️ Eliminar</button>` : ''}
           </div>
         </td>
       </tr>
@@ -639,12 +639,7 @@ async function cargarUsuarios() {
   } catch (error) { 
     document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
   }
-}function abrirModalPassword(userId) {
-  document.getElementById('pass-user-id').value = userId;
-  document.getElementById('pass-nueva').value = '';
-  document.getElementById('modal-password').style.display = 'flex';
 }
-
 async function guardarNuevaPassword() {
   const userId = document.getElementById('pass-user-id').value;
   const nuevaPass = document.getElementById('pass-nueva').value;
