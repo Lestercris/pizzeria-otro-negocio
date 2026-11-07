@@ -574,6 +574,11 @@ h1 {
 .btn-borrar { background: #e74c3c; color: white; }
 .btn-borrar:hover { background: #c0392b; }
 
+/* Ocultar el botón de menú hamburguesa cuando la pantalla de login está visible */
+#login-screen:not([style*="display: none"]) ~ #menu-toggle {
+  display: none !important;
+}
+
 /* =========================================
    FIN DEL ARCHIVO admin.css
    ========================================= */
