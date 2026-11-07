@@ -6,7 +6,7 @@
   <title>Panel de Administración</title>
   
   <!-- Seguridad y librerías externas (con defer para evitar bloqueos) -->
-  <script src="auth.js" defer></script>
+  <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
   
   <!-- Fuentes y Estilos -->
@@ -286,8 +286,7 @@
   </div>
 
   <!-- SCRIPTS DE LA APLICACIÓN -->
-  <!-- 🔥 Cargamos auth.js primero y, cuando termine, cargamos admin-app.js -->
-  <script src="auth.js"></script>
+
   <script>
     // Cuando auth.js esté listo, cargamos la lógica de la app
     if (typeof AuthGuard !== 'undefined') {
