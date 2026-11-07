@@ -389,8 +389,26 @@ function renderizarPedidosAdmin() {
       <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
       <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
       
-      <td class="celda-detalle" style="padding:12px; max-width:280px; font-size:0.8rem;">
-        <span class="texto-detalle">${esc(p.detalle)}</span>
+      <!-- 🔥 CELDA DEL DETALLE CON FORMATO INTELIGENTE -->
+      <td class="celda-detalle" style="padding:12px; max-width:300px; font-size:0.8rem;">
+        <span class="texto-detalle">
+          ${(() => {
+            let items = [];
+            try {
+              if (typeof p.detalle === 'string' && p.detalle.startsWith('[')) {
+                items = JSON.parse(p.detalle);
+              } else {
+                const texto = p.detalle || '';
+                let partes = texto.split(/(?=\d+x )/); 
+                if (partes.length === 1) partes = texto.split(', '); 
+                items = partes.filter(i => i.trim() !== '');
+              }
+            } catch (e) {
+              items = (p.detalle || '').split(', ');
+            }
+            return items.map((item, idx) => `<div style="margin-bottom: 4px;">${idx + 1}. ${esc(item.trim())}</div>`).join('');
+          })()}
+        </span>
         <button class="btn-ver-detalle" onclick="verDetallePedido('${esc(p.order_id)}')">
           👁️ Ver detalle
         </button>
@@ -426,7 +444,6 @@ function renderizarPedidosAdmin() {
   document.getElementById('paginacion-pedidos').style.display = 'flex';
   document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas || 1}`;
 }
-
 function cambiarPaginaPedidos(direccion) {
   const totalPaginas = Math.ceil(pedidosGlobal.length / registrosPorPagina);
   const nuevaPagina = paginaPedidosActual + direccion;
