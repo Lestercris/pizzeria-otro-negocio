@@ -67,11 +67,11 @@
         <h1>Gestión de Pedidos</h1>
         
         <div style="display: flex; gap: 10px; align-items: center;">
-          <select id="registros-por-pagina" onchange="cambiarRegistrosPorPagina(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0; width: auto;">
-            <option value="10">Mostrar 10</option>
-            <option value="25">Mostrar 25</option>
-            <option value="50">Mostrar 50</option>
-            <option value="1000">Mostrar Todos</option>
+         <select id="registros-por-pagina" onchange="cambiarRegistrosPorPagina(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0; width: auto;">
+          <option value="10" selected>Mostrar 10</option>
+          <option value="25">Mostrar 25</option>
+          <option value="50">Mostrar 50</option>
+          <option value="1000">Mostrar Todos</option>
           </select>
           
           <button class="btn" style="width: auto; background: #3498db;" onclick="actualizarPedidosManual()">🔄 Actualizar</button>
