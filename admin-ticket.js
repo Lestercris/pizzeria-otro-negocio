@@ -19,7 +19,7 @@ async function mostrarTicketModal(orderId) {
   const ticketHTML = `
     <div style="font-family: 'Courier New', Courier, monospace; width: 100%; max-width: 72mm; margin: 0 auto; color: #000; line-height: 1.2; font-size: 12px; background: white; padding: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
       <div style="text-align: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 16px; font-weight: bold;">${esc(config.empresa || config.nombre_negocio || 'MI NEGOCIO')}</h2>
+        <h2 style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase;">${esc(config.empresa || config.nombre_negocio || 'MI NEGOCIO')}</h2>
         ${config.cif ? `<p style="margin: 2px 0;">CIF: ${esc(config.cif)}</p>` : ''}
         ${config.direccion ? `<p style="margin: 2px 0;">${esc(config.direccion)}</p>` : ''}
         ${config.telefono ? `<p style="margin: 2px 0;">Tel: ${esc(config.telefono)}</p>` : ''}
@@ -33,8 +33,13 @@ async function mostrarTicketModal(orderId) {
         ${pedido.direccion ? `<p style="margin: 2px 0;">Dir: ${esc(pedido.direccion)}</p>` : ''}
       </div>
       
-      <div style="margin-bottom: 10px;">
-        ${(pedido.detalle || '').split(',').map(i => `<div style="margin-bottom: 4px;">${esc(i.trim())}</div>`).join('')}
+      <!-- 🔥 LISTA DE PRODUCTOS MEJORADA -->
+      <div style="margin-bottom: 15px;">
+        ${(pedido.detalle || '').split(',').map((item, index) => `
+          <div style="padding: 6px 0; border-bottom: 1px dashed #ccc; font-size: 13px; line-height: 1.4;">
+            <strong>${index + 1}.</strong> ${esc(item.trim())}
+          </div>
+        `).join('')}
       </div>
       
       <div style="border-top: 1px dashed #000; padding-top: 6px; text-align: right; font-weight: bold; font-size: 14px;">
