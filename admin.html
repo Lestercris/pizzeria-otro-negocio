@@ -52,6 +52,7 @@
   <div class="main-content hidden-panel" id="main-panel">
     <div id="alert-box" style="padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500;"></div>
 
+    <!-- SECCIÓN: PRODUCTOS -->
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
@@ -59,27 +60,31 @@
       </div>
       <div class="grid-productos" id="lista-productos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-  <h1>Gestión de Pedidos</h1>
-  
-  <div style="display: flex; gap: 10px; align-items: center;">
-    <select id="registros-por-pagina" onchange="cambiarRegistrosPorPagina(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0; width: auto;">
-      <option value="10">Mostrar 10</option>
-      <option value="25">Mostrar 25</option>
-      <option value="50">Mostrar 50</option>
-      <option value="1000">Mostrar Todos</option>
-    </select>
-    
-    <button class="btn" style="width: auto; background: #3498db;" onclick="actualizarPedidosManual()">🔄 Actualizar</button>
-  </div>
-</div>
-    
+
+    <!-- SECCIÓN: PEDIDOS -->
+    <div id="seccion-pedidos" style="display: none;"> 
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <h1>Gestión de Pedidos</h1>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="registros-por-pagina" onchange="cambiarRegistrosPorPagina(this.value)" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 0; width: auto;">
+            <option value="10">Mostrar 10</option>
+            <option value="25">Mostrar 25</option>
+            <option value="50">Mostrar 50</option>
+            <option value="1000">Mostrar Todos</option>
+          </select>
+          
+          <button class="btn" style="width: auto; background: #3498db;" onclick="actualizarPedidosManual()">🔄 Actualizar</button>
+        </div>
+      </div>
+      
       <div style="overflow-x: auto;">
         <table class="tabla-pedidos">
           <thead><tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody id="tabla-pedidos-body"></tbody>
         </table>
       </div>
+      
       <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;" id="paginacion-pedidos">
         <button class="btn" style="width: auto; background: #95a5a6;" onclick="cambiarPaginaPedidos(-1)">« Anterior</button>
         <span id="info-pagina-pedidos" style="font-weight: bold; align-self: center;">Página 1</span>
@@ -87,6 +92,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN: SLIDER -->
     <div id="seccion-slider" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Carrusel de Inicio</h1>
@@ -95,6 +101,7 @@
       <div class="grid-slider" id="lista-slides" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
 
+    <!-- SECCIÓN: RESEÑAS -->
     <div id="seccion-resenas" style="display: none;">
       <h1>Gestión de Reseñas</h1>
       <div class="seccion-card">
@@ -102,6 +109,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN: CONFIGURACIÓN -->
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div class="seccion-card">
@@ -150,6 +158,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN: USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Gestión de Usuarios</h1>
       <div class="seccion-card" style="margin-bottom: 20px;">
@@ -276,9 +285,9 @@
     </div>
   </div>
 
-  <!-- SCRIPTS DE LA APLICACIÓN (Añadido defer para evitar bloqueos) -->
-  <script src="admin-app.js" defer></script>
-  <script src="admin-mobile.js" defer></script>
-  <script src="admin-ticket.js" defer></script>
+  <!-- SCRIPTS DE LA APLICACIÓN -->
+  <script src="admin-app.js"></script>
+  <script src="admin-mobile.js"></script>
+  <script src="admin-ticket.js"></script>
 </body>
 </html>
