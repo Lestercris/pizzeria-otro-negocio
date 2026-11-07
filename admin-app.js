@@ -425,7 +425,7 @@ function renderizarPedidosAdmin() {
 }
 
 function cambiarPaginaPedidos(direccion) {
-  const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+  const totalPaginas = Math.ceil(pedidosGlobal.length / registrosPorPagina);
   const nuevaPagina = paginaPedidosActual + direccion;
   if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
     paginaPedidosActual = nuevaPagina;
@@ -433,7 +433,11 @@ function cambiarPaginaPedidos(direccion) {
     document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
   }
 }
-
+function cambiarRegistrosPorPagina(valor) {
+  registrosPorPagina = parseInt(valor);
+  paginaPedidosActual = 1; // Volvemos a la primera página al cambiar el tamaño
+  renderizarPedidosAdmin();
+}
 function eliminarPedido(orderId) {
   confirmarAccion('Eliminar Pedido', '¿Seguro que quieres borrar este pedido?', async () => {
     try {
