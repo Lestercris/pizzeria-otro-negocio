@@ -286,8 +286,26 @@
   </div>
 
   <!-- SCRIPTS DE LA APLICACIÓN -->
-  <script src="admin-app.js"></script>
-  <script src="admin-mobile.js"></script>
-  <script src="admin-ticket.js"></script>
+  <!-- 🔥 Cargamos auth.js primero y, cuando termine, cargamos admin-app.js -->
+  <script src="auth.js"></script>
+  <script>
+    // Cuando auth.js esté listo, cargamos la lógica de la app
+    if (typeof AuthGuard !== 'undefined') {
+      // Ya se ha cargado (porque el script de arriba es síncrono)
+      const scriptApp = document.createElement('script');
+      scriptApp.src = 'admin-app.js';
+      scriptApp.onload = () => {
+        // Una vez cargado admin-app.js, cargamos el resto
+        const scriptMobile = document.createElement('script');
+        scriptMobile.src = 'admin-mobile.js';
+        document.body.appendChild(scriptMobile);
+        
+        const scriptTicket = document.createElement('script');
+        scriptTicket.src = 'admin-ticket.js';
+        document.body.appendChild(scriptTicket);
+      };
+      document.body.appendChild(scriptApp);
+    }
+  </script>
 </body>
 </html>
