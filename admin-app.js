@@ -62,6 +62,10 @@ async function login() {
   btn.textContent = 'Verificando...';
 
   try {
+    // 🔥 1. LIMPIAMOS CUALQUIER SESIÓN VIEJA ANTES DE INTENTAR LOGUEAR
+    localStorage.removeItem('pizzeria_session');
+    localStorage.removeItem('cocina_nombre');
+
     const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { 
       method: 'POST', 
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, 
@@ -73,7 +77,7 @@ async function login() {
     const authData = await response.json(); 
     const accessToken = authData.access_token;
     
-    // 🔥 Leemos el perfil directamente de la base de datos
+    // Leemos el perfil directamente de la base de datos
     const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
     let nombreMostrar = email, rolReal = 'empleado';
     
@@ -82,10 +86,7 @@ async function login() {
       nombreMostrar = perfiles[0].nombre || email; 
     }
 
-    // 🔥 AQUÍ YA NO HAY NINGÚN CORREO ESCRITO.
-    // El sistema confía en la base de datos.
-    
-    // 🔥 Si es cocina, la sesión NO caduca. Si es admin o empleado, SÍ caduca.
+    // Si es cocina, la sesión NO caduca. Si es admin o empleado, SÍ caduca.
     const esSesionCaducable = (rolReal !== 'cocina');
     AuthGuard.saveSession(email, rolReal, accessToken, esSesionCaducable);
 
@@ -103,7 +104,15 @@ async function login() {
     // Mostramos las opciones de admin solo si el rol es 'admin'
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
     
-    cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
+    // 🔥 2. RETRASO DE SEGURIDAD: Esperamos 500ms a que el token se guarde bien antes de pedir los datos
+    setTimeout(() => {
+        cargarProductos(); 
+        cargarConfiguracion(); 
+        cargarPedidos(); 
+        cargarSlides(); 
+        cargarResenas(); 
+        cargarUsuarios();
+    }, 500);
     
   } catch (error) { 
     document.getElementById('login-msg').textContent = error.message; 
@@ -111,7 +120,6 @@ async function login() {
     btn.textContent = 'Entrar al Panel'; 
   }
 }
-
 async function guardarProducto() {
   const idOriginal = document.getElementById('prod-id-original').value; 
   const nombre = document.getElementById('prod-nombre').value.trim(); 
@@ -810,7 +818,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Cargamos los datos
-    cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
+       // 🔥 Le damos medio segundo al navegador para que guarde el token antes de pedir datos
+    setTimeout(() => {
+      cargarProductos(); 
+      cargarConfiguracion(); 
+      cargarPedidos(); 
+      cargarSlides(); 
+      cargarResenas(); 
+      cargarUsuarios();
+    }, 500);
   }
 });
