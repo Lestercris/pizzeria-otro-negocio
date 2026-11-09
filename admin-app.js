@@ -105,6 +105,7 @@ async function login() {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
     
     // 🔥 2. RETRASO DE SEGURIDAD: Esperamos 500ms a que el token se guarde bien antes de pedir los datos
+        // 🔥 RETRASO DE SEGURIDAD (500ms)
     setTimeout(() => {
         cargarProductos(); 
         cargarConfiguracion(); 
