@@ -1,21 +1,39 @@
 const AuthGuard = {
-  saveSession: (email, rol, accessToken = null) => {
+  // 🔥 Añadimos el parámetro "caducable" (por defecto true)
+  saveSession: (email, rol, accessToken = null, caducable = true) => {
     const sessionData = {
       email: email,
       rol: rol,
       token: accessToken, 
-      timestamp: new Date().getTime()
+      timestamp: new Date().getTime(),
+      caducable: caducable // Guardamos si esta sesión debe caducar
     };
     localStorage.setItem('pizzeria_session', JSON.stringify(sessionData));
   },
 
   getSession: () => {
-    const session = localStorage.getItem('pizzeria_session');
-    if (!session) return null;
+    const sessionStr = localStorage.getItem('pizzeria_session');
+    if (!sessionStr) return null;
+    
     try {
-        return JSON.parse(session);
+      const session = JSON.parse(sessionStr);
+      
+      // 🔥 Solo comprobamos el tiempo si la sesión es "caducable"
+      if (session.caducable) {
+        const ahora = new Date().getTime();
+        const tiempoTranscurrido = ahora - (session.timestamp || 0);
+        const limite = 50 * 60 * 1000; // 50 minutos
+
+        if (tiempoTranscurrido > limite) {
+          localStorage.removeItem('pizzeria_session');
+          return null; 
+        }
+      }
+
+      return session;
     } catch (e) {
-        return null;
+      localStorage.removeItem('pizzeria_session');
+      return null;
     }
   },
 
@@ -27,17 +45,8 @@ const AuthGuard = {
 
   protectPage: (requiredRoles = []) => {
     const session = AuthGuard.getSession();
-
-    // 🔥 COMPROBACIÓN A PRUEBA DE FALLOS
-    // Si no hay sesión, o no hay token, o el token no es una cadena válida...
-    if (!session || !session.token || session.token === 'undefined') {
-      return false; // Devolvemos false, sin redirigir
-    }
-
-    if (requiredRoles.length > 0 && !requiredRoles.includes(session.rol)) {
-      return false;
-    }
-
+    if (!session || !session.token) return false; 
+    if (requiredRoles.length > 0 && !requiredRoles.includes(session.rol)) return false;
     return true;
   }
 };
