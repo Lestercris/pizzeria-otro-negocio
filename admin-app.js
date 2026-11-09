@@ -73,7 +73,7 @@ async function login() {
     const authData = await response.json(); 
     const accessToken = authData.access_token;
     
-    // 🔥 LEEMOS EL PERFIL DIRECTAMENTE DE LA BASE DE DATOS
+    // 🔥 Leemos el perfil directamente de la base de datos
     const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
     let nombreMostrar = email, rolReal = 'empleado';
     
@@ -82,8 +82,8 @@ async function login() {
       nombreMostrar = perfiles[0].nombre || email; 
     }
 
-    // 🔥 YA NO HAY CORREOS ESCRITOS A FUEGO. 
-    // Si en Supabase tienes rol 'admin', serás admin.
+    // 🔥 AQUÍ YA NO HAY NINGÚN CORREO ESCRITO.
+    // El sistema confía en la base de datos.
     
     // 🔥 Si es cocina, la sesión NO caduca. Si es admin o empleado, SÍ caduca.
     const esSesionCaducable = (rolReal !== 'cocina');
@@ -111,6 +111,7 @@ async function login() {
     btn.textContent = 'Entrar al Panel'; 
   }
 }
+
 async function guardarProducto() {
   const idOriginal = document.getElementById('prod-id-original').value; 
   const nombre = document.getElementById('prod-nombre').value.trim(); 
@@ -539,6 +540,10 @@ async function cargarUsuarios() {
       return; 
     }
 
+    // 🔥 OBTENEMOS EL EMAIL DEL USUARIO QUE ESTÁ LOGUEADO ACTUALMENTE
+    const miSesion = AuthGuard.getSession();
+    const miEmail = miSesion ? miSesion.email : '';
+
     tbody.innerHTML = usuariosGlobal.map(u => `
       <tr style="border-bottom: 1px solid #f1f1f1; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
         <td style="padding:15px; font-weight:600; color:#2c3e50;">${u.nombre}</td>
@@ -554,7 +559,8 @@ async function cargarUsuarios() {
             
             <button onclick="abrirModalPassword('${u.id}')" title="Cambiar Contraseña" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #fff3e0; color: #f57c00; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f57c00'; this.style.color='white';" onmouseout="this.style.background='#fff3e0'; this.style.color='#f57c00';">🔑</button>
             
-            ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" title="Eliminar Usuario" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #ffebee; color: #d32f2f; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#d32f2f'; this.style.color='white';" onmouseout="this.style.background='#ffebee'; this.style.color='#d32f2f';">🗑️</button>` : ''}
+            <!-- 🔥 COMPROBAMOS CONTRA LA SESIÓN ACTUAL, NO CONTRA UN CORREO ESCRITO -->
+            ${u.email !== miEmail ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" title="Eliminar Usuario" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: #ffebee; color: #d32f2f; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#d32f2f'; this.style.color='white';" onmouseout="this.style.background='#ffebee'; this.style.color='#d32f2f';">🗑️</button>` : ''}
           </div>
         </td>
       </tr>
@@ -563,6 +569,7 @@ async function cargarUsuarios() {
     document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>`; 
   }
 }
+
 async function guardarNuevaPassword() {
   const userId = document.getElementById('pass-user-id').value;
   const nuevaPass = document.getElementById('pass-nueva').value;
@@ -631,10 +638,7 @@ async function guardarEdicionUsuario() {
 }
 
 function eliminarUsuario(userId, email) {
-  if (email === 'isahyles123@gmail.com') { 
-    mostrarAlerta('No puedes eliminar al Súper Admin.', 'error'); 
-    return; 
-  }
+  // 🔥 Ya no hay ningún correo escrito a fuego.
   confirmarAccion('Eliminar Usuario', `¿Seguro que quieres eliminar a ${email}?`, async () => {
     try {
       await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' });
@@ -645,7 +649,6 @@ function eliminarUsuario(userId, email) {
     }
   });
 }
-
 async function crearEmpleado() {
   const nombre = document.getElementById('new-user-name').value.trim();
   const email = document.getElementById('new-user-email').value.trim();
