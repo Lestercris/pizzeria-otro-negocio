@@ -401,9 +401,24 @@ function verDetallePedido(orderId) {
 
   const detalleContent = document.getElementById('detalle-pedido-content');
   
-  const items = pedido.detalle ? pedido.detalle.split(',').map(item => {
+  // 🔥 Lógica inteligente para leer el detalle (JSON o texto viejo)
+  let itemsArray = [];
+  try {
+    if (typeof pedido.detalle === 'string' && pedido.detalle.startsWith('[')) {
+      itemsArray = JSON.parse(pedido.detalle);
+    } else {
+      const texto = pedido.detalle || '';
+      let partes = texto.split(/(?=\d+x )/);
+      if (partes.length === 1) partes = texto.split(', ');
+      itemsArray = partes.filter(i => i.trim() !== '');
+    }
+  } catch (e) {
+    itemsArray = (pedido.detalle || '').split(', ');
+  }
+
+  const items = itemsArray.length > 0 ? itemsArray.map((item, index) => {
     return `<div style="padding: 10px; background: #f8f9fa; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #3498db; font-size: 0.95rem;">
-      ${esc(item.trim())}
+      <strong>${index + 1}.</strong> ${esc(item.trim())}
     </div>`;
   }).join('') : '<p>Sin detalle</p>';
 
