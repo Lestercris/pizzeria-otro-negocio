@@ -73,6 +73,7 @@ async function login() {
     const authData = await response.json(); 
     const accessToken = authData.access_token;
     
+    // 🔥 LEEMOS EL PERFIL DIRECTAMENTE DE LA BASE DE DATOS
     const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
     let nombreMostrar = email, rolReal = 'empleado';
     
@@ -80,13 +81,11 @@ async function login() {
       rolReal = perfiles[0].rol || 'empleado'; 
       nombreMostrar = perfiles[0].nombre || email; 
     }
-    
-    if (email === 'isahyles123@gmail.com') { 
-      rolReal = 'admin'; 
-      nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; 
-    }
 
-    // 🔥 CAMBIO AQUÍ: Si es cocina, la sesión NO caduca (false). Si es admin o empleado, SÍ caduca (true).
+    // 🔥 YA NO HAY CORREOS ESCRITOS A FUEGO. 
+    // Si en Supabase tienes rol 'admin', serás admin.
+    
+    // 🔥 Si es cocina, la sesión NO caduca. Si es admin o empleado, SÍ caduca.
     const esSesionCaducable = (rolReal !== 'cocina');
     AuthGuard.saveSession(email, rolReal, accessToken, esSesionCaducable);
 
@@ -101,6 +100,7 @@ async function login() {
     document.getElementById('user-display-name').textContent = nombreMostrar; 
     document.getElementById('user-display-role').textContent = rolReal;
     
+    // Mostramos las opciones de admin solo si el rol es 'admin'
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
     
     cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
@@ -111,7 +111,6 @@ async function login() {
     btn.textContent = 'Entrar al Panel'; 
   }
 }
-
 async function guardarProducto() {
   const idOriginal = document.getElementById('prod-id-original').value; 
   const nombre = document.getElementById('prod-nombre').value.trim(); 
